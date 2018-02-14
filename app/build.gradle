@@ -17,6 +17,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+    }
 }
 
 dependencies {
@@ -26,5 +30,10 @@ dependencies {
     })
     compile "com.android.support:support-core-utils:27.0.0"
     compile 'com.android.support:appcompat-v7:27.0.0'
+    compile 'com.google.android.gms:play-services:7.8.0'
+    compile group: 'io.jsonwebtoken', name: 'jjwt', version: '0.6.0'
+
     testCompile 'junit:junit:4.12'
 }
+
+
