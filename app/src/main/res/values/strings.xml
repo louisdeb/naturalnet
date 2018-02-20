@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">NaturalNet</string>
+
+    <string name="no_warnings">No Warnings Issued</string>
+    <string name="network_status">Network Status</string>
 </resources>
