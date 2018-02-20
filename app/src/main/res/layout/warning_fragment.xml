@@ -16,7 +16,18 @@
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-            <!-- Add status icon here -->
+
+            <!-- Status Icon -->
+            <ImageView
+                    android:id="@+id/warningTick"
+                    android:layout_width="10dp"
+                    android:layout_height="35dp"
+                    android:layout_gravity="center_vertical"
+                    android:tint="@color/white"
+                    app:srcCompat="@drawable/ic_tick"
+                    android:layout_weight="0.19"/>
+
+            <!-- Status Text-->
             <TextView
                     android:id="@+id/warningTitle"
                     android:text="@string/no_warnings"
@@ -25,7 +36,9 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:gravity="center_vertical"
+                    android:layout_gravity="center_vertical"
                     android:layout_weight="1"/>
+
             <!-- Add dropdown icon here, which appears when there is a warning -->
         </LinearLayout>
     </LinearLayout>

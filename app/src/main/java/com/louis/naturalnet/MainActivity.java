@@ -1,13 +1,13 @@
 package com.louis.naturalnet;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import com.louis.naturalnet.fragments.NetworkFragment;
 import com.louis.naturalnet.fragments.WarningFragment;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     private String logTag = "NaturalNet:";
 

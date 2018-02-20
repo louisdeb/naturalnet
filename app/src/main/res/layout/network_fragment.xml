@@ -2,7 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/fragment_container"
               android:background="@drawable/rounded_fragment"
-              android:backgroundTint="@color/orange"
+              android:backgroundTint="@color/green"
               android:clipToPadding="true"
               android:layout_width="match_parent"
               android:layout_height="70dp">
@@ -11,21 +11,46 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
         <LinearLayout
+                android:id="@+id/network_title_layout"
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-            <!-- Add network icon here -->
+
+            <!-- Network Status Icon -->
+            <ImageView
+                    android:id="@+id/network_icon"
+                    android:layout_width="10dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center_vertical"
+                    android:tint="@color/white"
+                    app:srcCompat="@drawable/ic_network_check"
+                    android:layout_weight="0.21"/>
+
+            <!-- Network Status Text -->
             <TextView
-                    android:id="@+id/networkTitle"
+                    android:id="@+id/network_title"
                     android:text="@string/network_status"
                     android:textColor="@color/white"
                     style="@android:style/TextAppearance.Large"
-                    android:layout_width="0dp"
+                    android:layout_width="10dp"
                     android:layout_height="match_parent"
                     android:gravity="center_vertical"
+                    android:layout_gravity="center_vertical"
                     android:layout_weight="1"/>
-            <!-- Add dropdown icon here -->
+
+            <!-- Dropdown Icon -->
+            <ImageView
+                    android:id="@+id/chevron_down_icon"
+                    android:layout_width="0dp"
+                    android:layout_height="30dp"
+                    android:tint="@color/white"
+                    android:gravity="center_vertical"
+                    android:layout_gravity="center_vertical"
+                    app:srcCompat="@drawable/ic_chevron_down"
+                    android:layout_weight="0.18"/>
+
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>
