@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.louis.naturalnet.fragments.WarningFragment;
+
 public class MainActivity extends Activity {
 
     private String logTag = "NaturalNet:";
@@ -20,6 +22,11 @@ public class MainActivity extends Activity {
 
         // Set the default content view
         setContentView(R.layout.main_layout);
+
+        if(findViewById(R.id.warning_fragment_container) != null) {
+            WarningFragment warningFragment = new WarningFragment();
+            getFragmentManager().beginTransaction().add(R.id.warning_fragment_container, warningFragment).commit();
+        }
     }
 
 }
