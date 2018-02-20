@@ -13,17 +13,23 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="30dp"
+                android:layout_margin="10dp"
                 android:id="@+id/textView" android:layout_weight="1"/>
     </LinearLayout>
 
     <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="80dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
+            android:layout_margin="20dp"
             android:id="@+id/warning_fragment_container">
     <!-- FrameLayout layout_height will be wrap_content when we have content -->
+    </FrameLayout>
+
+    <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_margin="20dp"
+            android:id="@+id/network_fragment_container">
+        <!-- FrameLayout layout_height will be wrap_content when we have content -->
     </FrameLayout>
 </LinearLayout>

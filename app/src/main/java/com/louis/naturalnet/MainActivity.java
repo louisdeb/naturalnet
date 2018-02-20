@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.louis.naturalnet.fragments.NetworkFragment;
 import com.louis.naturalnet.fragments.WarningFragment;
 
 public class MainActivity extends Activity {
@@ -26,6 +27,11 @@ public class MainActivity extends Activity {
         if(findViewById(R.id.warning_fragment_container) != null) {
             WarningFragment warningFragment = new WarningFragment();
             getFragmentManager().beginTransaction().add(R.id.warning_fragment_container, warningFragment).commit();
+        }
+
+        if(findViewById(R.id.network_fragment_container) != null) {
+            NetworkFragment networkFragment = new NetworkFragment();
+            getFragmentManager().beginTransaction().add(R.id.network_fragment_container, networkFragment).commit();
         }
     }
 
