@@ -40,7 +40,7 @@
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1"/>
 
-            <!-- Dropdown Icon -->
+            <!-- Chevron Down Icon -->
             <ImageView
                     android:id="@+id/chevron_down_icon"
                     android:layout_width="0dp"
@@ -49,6 +49,19 @@
                     android:gravity="center_vertical"
                     android:layout_gravity="center_vertical"
                     app:srcCompat="@drawable/ic_chevron_down"
+                    android:layout_weight="0.18"/>
+
+            <!-- Chevron Up Icon -->
+            <!-- Default visibility: Gone -->
+            <ImageView
+                    android:id="@+id/chevron_up_icon"
+                    android:layout_width="0dp"
+                    android:layout_height="30dp"
+                    android:tint="@color/white"
+                    android:gravity="center_vertical"
+                    android:layout_gravity="center_vertical"
+                    android:visibility="gone"
+                    app:srcCompat="@drawable/ic_chevron_up"
                     android:layout_weight="0.18"/>
 
         </LinearLayout>
