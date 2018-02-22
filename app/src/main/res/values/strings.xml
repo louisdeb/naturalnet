@@ -1,6 +1,13 @@
 <resources>
     <string name="app_name">NaturalNet</string>
 
+    <!-- Warning -->
     <string name="no_warnings">No Warnings Issued</string>
+
+    <!-- Network -->
     <string name="network_status">Network Status</string>
+    <string name="cellular_status">Good Cellular Signal</string>
+    <string name="gps_status">Good GPS Signal</string>
+    <string name="net_status">Good Peer Connectivity</string>
+    <string name="net_connections">- 12 Nodes Connected</string>
 </resources>
