@@ -4,9 +4,8 @@
     <color name="colorPrimaryDark">@color/green</color>
     <color name="colorAccent">@color/yellow</color>
 
-    <color name="white">#fff</color>
     <color name="green">#7fc89b</color>
-    <color name="yellow">#FFE552</color>
+    <color name="yellow">#f1d017</color>
     <color name="orange">#E8973F</color>
     <color name="purple">#FF4D40</color>
 </resources>

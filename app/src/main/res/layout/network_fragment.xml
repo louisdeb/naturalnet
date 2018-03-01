@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/fragment_container"
-              android:background="@drawable/rounded_fragment"
-              android:backgroundTint="@color/green"
+              android:background="@drawable/green_rounded_fragment"
               android:clipToPadding="true"
               android:layout_width="match_parent"
               android:layout_height="wrap_content">
@@ -25,7 +24,7 @@
                     android:layout_width="10dp"
                     android:layout_height="30dp"
                     android:layout_gravity="center_vertical"
-                    android:tint="@color/white"
+                    android:tint="@android:color/white"
                     app:srcCompat="@drawable/ic_network_check"
                     android:layout_weight="0.21"/>
 
@@ -33,7 +32,7 @@
             <TextView
                     android:id="@+id/network_title"
                     android:text="@string/network_status"
-                    android:textColor="@color/white"
+                    android:textColor="@android:color/white"
                     style="@android:style/TextAppearance.Large"
                     android:layout_width="10dp"
                     android:layout_height="match_parent"
@@ -46,7 +45,7 @@
                     android:id="@+id/chevron_down_icon"
                     android:layout_width="0dp"
                     android:layout_height="30dp"
-                    android:tint="@color/white"
+                    android:tint="@android:color/white"
                     android:gravity="center_vertical"
                     android:layout_gravity="center_vertical"
                     app:srcCompat="@drawable/ic_chevron_down"
@@ -58,7 +57,7 @@
                     android:id="@+id/chevron_up_icon"
                     android:layout_width="0dp"
                     android:layout_height="30dp"
-                    android:tint="@color/white"
+                    android:tint="@android:color/white"
                     android:gravity="center_vertical"
                     android:layout_gravity="center_vertical"
                     android:visibility="gone"
@@ -87,7 +86,7 @@
                 <!-- Good Signal Icon -->
                 <ImageView
                         android:id="@+id/good_cellular_signal_icon"
-                        android:tint="@color/white"
+                        android:tint="@android:color/white"
                         android:layout_width="50dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="10dp"
@@ -99,7 +98,7 @@
                         android:id="@+id/good_cellular_signal_text"
                         android:text="@string/cellular_status"
                         style="@android:style/TextAppearance.Medium"
-                        android:textColor="@color/white"
+                        android:textColor="@android:color/white"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
@@ -118,7 +117,7 @@
                 <!-- Good Signal Icon -->
                 <ImageView
                         android:id="@+id/good_gps_signal_icon"
-                        android:tint="@color/white"
+                        android:tint="@android:color/white"
                         android:layout_width="50dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="10dp"
@@ -130,7 +129,7 @@
                         android:id="@+id/good_gps_signal_text"
                         android:text="@string/gps_status"
                         style="@android:style/TextAppearance.Medium"
-                        android:textColor="@color/white"
+                        android:textColor="@android:color/white"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
@@ -154,7 +153,7 @@
                     <!-- Good Signal Icon -->
                     <ImageView
                             android:id="@+id/good_net_signal_icon"
-                            android:tint="@color/white"
+                            android:tint="@android:color/white"
                             android:layout_width="50dp"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="10dp"
@@ -166,7 +165,7 @@
                             android:id="@+id/good_net_signal_text"
                             android:text="@string/net_status"
                             style="@android:style/TextAppearance.Medium"
-                            android:textColor="@color/white"
+                            android:textColor="@android:color/white"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
@@ -180,7 +179,7 @@
                         android:id="@+id/net_number_of_connections"
                         android:text="@string/net_connections"
                         style="@android:style/TextAppearance.Small"
-                        android:textColor="@color/white"
+                        android:textColor="@android:color/white"
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_marginStart="30dp"

@@ -3,6 +3,7 @@
 
     <!-- Warning -->
     <string name="no_warnings">No Warnings Issued</string>
+    <string name="warning_received">Warning Issued</string>
 
     <!-- Network -->
     <string name="network_status">Network Status</string>
