@@ -1,16 +1,23 @@
 package com.louis.naturalnet.fragments;
 
 import android.app.Fragment;
+import android.content.Context;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.telephony.PhoneStateListener;
+import android.telephony.SignalStrength;
+import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import com.louis.naturalnet.R;
 
 public class NetworkFragment extends Fragment {
+
+    TelephonyManager telephonyManager;
+    MyPhoneStateListener mPhoneStateListener;
+    int mSignalStrength = 0;
 
     private boolean expanded = false;
 
@@ -33,7 +40,29 @@ public class NetworkFragment extends Fragment {
             }
         });
 
+        mPhoneStateListener = new MyPhoneStateListener();
+        telephonyManager = (TelephonyManager) getActivity().getSystemService(Context.TELEPHONY_SERVICE);
+        telephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+
         return view;
+    }
+
+    private class MyPhoneStateListener extends PhoneStateListener {
+
+        @Override
+        public void onSignalStrengthsChanged(SignalStrength signalStrength) {
+            super.onSignalStrengthsChanged(signalStrength);
+
+            // Returns a signal int [0..31]
+            mSignalStrength = signalStrength.getGsmSignalStrength();
+
+            // To dBm
+            // mSignalStrength = (2 * mSignalStrength) - 113;
+
+            // Log.d("NetworkFragment", "signal strength: " + mSignalStrength);
+            // Log.d("NetworkFragment", "level: " + signalStrength.getLevel());
+        }
+
     }
 
 }
