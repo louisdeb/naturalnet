@@ -4,6 +4,9 @@
 
     <uses-sdk android:maxSdkVersion="27"/>
 
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <application android:allowBackup="true"
                  android:label="@string/app_name"
                  android:icon="@mipmap/ic_launcher"
@@ -30,10 +33,12 @@
                 <!-- Accepts URIs that begin with "http://www.example.com/gizmos” -->
                 <data
                         android:host="token"
-                        android:scheme="NaturalNet" /> <!-- was oppnet, previously -->
+                        android:scheme="naturalnet" />
             </intent-filter>
 
         </activity>
+
+        <service android:enabled="true" android:name="com.louis.naturalnet.signal.LocationService" />
 
     </application>
 
