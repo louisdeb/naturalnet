@@ -23,8 +23,6 @@ public class CellularSignalReceiver {
         }
 
         telephonyManager.listen(listener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
-
-        listener.notifyDataEnabled(telephonyManager.isDataEnabled());
     }
 
 }
