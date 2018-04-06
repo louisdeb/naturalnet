@@ -17,7 +17,7 @@ public class QueueManager {
 
 	public static String ID;
 
-	private static volatile ArrayList<QueueItem> queue = new ArrayList<QueueItem>();
+	private static volatile ArrayList<QueueItem> queue = new ArrayList<>();
 
 	public long sensorTimestamp = 0;
 	public long sinkTimestamp = 0;
