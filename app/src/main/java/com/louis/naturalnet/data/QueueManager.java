@@ -247,7 +247,7 @@ public class QueueManager {
 		return queueSize;
 	}
 	
-	public void updateName(){
+	public void updateName() {
 		StringBuilder newName = new StringBuilder();
 		newName.append("OppNet");
 		newName.append(":");
@@ -258,7 +258,10 @@ public class QueueManager {
 		newName.append(queue.size());
 		newName.append(":");
 		newName.append(BatteryMonitor.getInstance(mContext).getBatteryLevel());
-		BluetoothAdapter.getDefaultAdapter().setName(newName.toString());
+
+		BluetoothAdapter BTAdapter = BluetoothAdapter.getDefaultAdapter();
+		if (BTAdapter != null)
+			BTAdapter.setName(newName.toString());
 
 		Log.d(TAG, "update name to " + newName.toString());
 	}

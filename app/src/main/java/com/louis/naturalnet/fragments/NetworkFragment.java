@@ -2,7 +2,6 @@ package com.louis.naturalnet.fragments;
 
 import android.app.Fragment;
 import android.os.Bundle;
-import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.util.Log;
 import android.view.LayoutInflater;
