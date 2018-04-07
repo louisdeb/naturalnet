@@ -86,7 +86,7 @@ public class BTManager {
         This class handles discovering and saving bluetooth devices.
         When a scan has finished, data in ExchangeData is exchanged.
      */
-    private class BTServiceBroadcastReceiver extends BroadcastReceiver {
+    public class BTServiceBroadcastReceiver extends BroadcastReceiver {
         ArrayList<String> devicesFoundStringArray = new ArrayList<>();
 
         public void onReceive(Context context, Intent intent) {
