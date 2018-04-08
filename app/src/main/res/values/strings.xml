@@ -7,7 +7,13 @@
 
     <!-- Network -->
     <string name="network_status">Network Status</string>
-    <string name="cellular_status">Good Cellular Signal</string>
+
+    <string name="great_cellular_status">Great Cellular Signal</string>
+    <string name="good_cellular_status">Good Cellular Signal</string>
+    <string name="moderate_cellular_status">Moderate Cellular Signal</string>
+    <string name="poor_cellular_status">Poor Cellular Signal</string>
+    <string name="no_cellular_status">No Cellular Signal</string>
+
     <string name="gps_status">Good GPS Signal</string>
     <string name="net_status">Good Peer Connectivity</string>
     <string name="net_connections">- 12 Nodes Connected</string>
