@@ -65,10 +65,16 @@ public class MainActivity extends AppCompatActivity {
         BTScanningAlarm.stopScanning(this);
         QueueManager.getInstance(this).stop(this);
         mBTManager.unregisterBroadcastReceivers();
+
+        stopLocationTracking();
     }
 
     private void startLocationTracking() {
         startService(new Intent(getBaseContext(), LocationService.class));
+    }
+
+    private void stopLocationTracking() {
+        stopService(new Intent(getBaseContext(), LocationService.class));
     }
 
     // Initial request comes from BTManager wanting BTAdapter to be enabled

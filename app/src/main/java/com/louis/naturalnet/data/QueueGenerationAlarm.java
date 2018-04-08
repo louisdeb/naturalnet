@@ -31,10 +31,10 @@ public class QueueGenerationAlarm extends BroadcastReceiver {
 	/**
 	 * Starts the alarm, need to give it a user defined bluetooth controller (define handler e.g.)
 	 */
-
 	public QueueGenerationAlarm(Context context) {          
 		scheduleQueueGeneration(context, System.currentTimeMillis());
 	}
+
 	/**
 	 * Acquire the Wake Lock
 	 * @param context
@@ -49,11 +49,10 @@ public class QueueGenerationAlarm extends BroadcastReceiver {
 	}
 
 	public static void releaseWakeLock(){
-		if(wakeLock != null)
-			if(wakeLock.isHeld())
+		if (wakeLock != null)
+			if (wakeLock.isHeld())
 				wakeLock.release();
 	}
-
 
 	/**
 	 * Stop the scheduled alarm
@@ -62,7 +61,7 @@ public class QueueGenerationAlarm extends BroadcastReceiver {
 	public static void stopGenerating(Context context) {
 		AlarmManager alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
 
-		if(alarmMgr != null){
+		if (alarmMgr != null) {
 			Intent intent = new Intent(context, QueueGenerationAlarm.class);
 			alarmIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 			alarmMgr.cancel(alarmIntent);
@@ -81,7 +80,7 @@ public class QueueGenerationAlarm extends BroadcastReceiver {
 
 		Intent intent = new Intent(context, QueueGenerationAlarm.class);
 		alarmIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-		if(alarmMgr != null){
+		if (alarmMgr != null) {
 			alarmMgr.cancel(alarmIntent);
 		}
 		interval = Constants.DATA_RATE;

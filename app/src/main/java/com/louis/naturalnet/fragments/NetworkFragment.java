@@ -46,11 +46,6 @@ public class NetworkFragment extends Fragment {
                 // Utilise this GSM Signal to alter the UI
                 Log.d(TAG, "GSM: " + gsmSignal);
             }
-
-            public void notifyDataEnabled(boolean enabled) {
-                // Perform some action on whether data is enabled or not
-                Log.d(TAG, "Data enabled: " + enabled);
-            }
         });
 
         return view;
