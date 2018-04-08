@@ -3,15 +3,15 @@ package com.louis.naturalnet.signal;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
-public class LocationReceiver extends BroadcastReceiver {
+/*
+    To receive location updates, register an instance of this class using Activity.registerReceiver
+    with the IntentFilter = new IntentFilter("com.louis.naturalnet.signal.LocationReceiver")
+ */
 
-    private static final String TAG = "LocationReceiver";
+public abstract class LocationReceiver extends BroadcastReceiver {
 
     @Override
-    public void onReceive(Context context, Intent intent) {
-        Log.d(TAG, "Received LocationReceiver intent: " + intent.toString());
-    }
+    public abstract void onReceive(Context context, Intent intent);
 
 }

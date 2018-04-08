@@ -1,6 +1,9 @@
 package com.louis.naturalnet.fragments;
 
 import android.app.Fragment;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.telephony.SignalStrength;
 import android.util.Log;
@@ -11,6 +14,7 @@ import android.widget.LinearLayout;
 import com.louis.naturalnet.R;
 import com.louis.naturalnet.signal.CellularSignalListener;
 import com.louis.naturalnet.signal.CellularSignalReceiver;
+import com.louis.naturalnet.signal.LocationReceiver;
 
 public class NetworkFragment extends Fragment {
 
@@ -47,6 +51,14 @@ public class NetworkFragment extends Fragment {
                 Log.d(TAG, "GSM: " + gsmSignal);
             }
         });
+
+        IntentFilter filter = new IntentFilter("com.louis.naturalnet.signal.LocationReceiver");
+        getActivity().registerReceiver(new LocationReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d(TAG, "Received broadcast: " + intent.toString());
+            }
+        }, filter);
 
         return view;
     }

@@ -70,8 +70,9 @@ public class LocationService extends Service implements
         Log.d(TAG, "Connected");
 
         try {
-            Intent intent = new Intent(this, LocationReceiver.class);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            Intent intent = new Intent("com.louis.naturalnet.signal.LocationReceiver");
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0,
+                    intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, pendingIntent);
         } catch (SecurityException e) {

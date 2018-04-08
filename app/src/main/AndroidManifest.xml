@@ -45,11 +45,6 @@
         <service android:enabled="true" android:name="com.louis.naturalnet.signal.LocationService" />
 
         <receiver
-                android:name=".signal.LocationReceiver"
-                android:enabled="true" >
-        </receiver>
-
-        <receiver
                 android:name=".bluetooth.BTScanningAlarm"
                 android:enabled="true" >
         </receiver>
