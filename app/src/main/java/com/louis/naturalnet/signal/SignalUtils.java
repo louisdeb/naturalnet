@@ -1,6 +1,12 @@
 package com.louis.naturalnet.signal;
 
+import android.content.Intent;
+import android.location.Location;
 import android.telephony.SignalStrength;
+import com.google.android.gms.location.LocationResult;
+
+import static com.google.android.gms.location.LocationResult.extractResult;
+import static com.google.android.gms.location.LocationResult.hasResult;
 
 /*
     GSM Signal Information: https://archive.org/stream/etsi_ts_127_007_v08.05.00/ts_127007v080500p#page/n81/mode/2up/search/99
@@ -81,6 +87,29 @@ public class SignalUtils {
         else qualitySnr = SignalQuality.NONE_OR_NOT_KNOWN;
 
         return (qualityDbm.getVal() < qualitySnr.getVal()) ? qualityDbm : qualitySnr;
+    }
+
+    public static SignalQuality getGpsQuality(Intent intent) {
+        // Will want to add some smoothing to this function.
+        // Some intents will not contain the location but will be right after a request
+        // that does contain the location, and followed by a request that does contain the location.
+
+        if (!hasResult(intent))
+            return SignalQuality.NONE_OR_NOT_KNOWN;
+
+        LocationResult locationResult = extractResult(intent);
+        Location location = locationResult.getLastLocation();
+        float accuracy = location.getAccuracy();
+
+        SignalQuality quality;
+
+        if (accuracy <= 5) quality = SignalQuality.GREAT;
+        else if (accuracy <= 20) quality = SignalQuality.GOOD;
+        else if (accuracy <= 100) quality = SignalQuality.MODERATE;
+        else if (accuracy <= 1000) quality = SignalQuality.POOR;
+        else quality = SignalQuality.NONE_OR_NOT_KNOWN;
+
+        return quality;
     }
 
 }

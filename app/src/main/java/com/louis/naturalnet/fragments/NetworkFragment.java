@@ -7,7 +7,6 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.telephony.SignalStrength;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +22,8 @@ public class NetworkFragment extends Fragment {
 
     private boolean expanded = false;
 
-    private SignalQuality signalQuality;
+    private SignalQuality cellSignalQuality;
+    private SignalQuality gpsSignalQuality;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -56,7 +56,7 @@ public class NetworkFragment extends Fragment {
             @Override
             public void onReceive(Context context, Intent intent) {
                 // Can do some parsing of the intent here
-                handleLocationChange(intent);
+                handleLocationChange(intent, view);
             }
         }, filter);
 
@@ -66,10 +66,10 @@ public class NetworkFragment extends Fragment {
     private void handleCellularSignalChange(SignalStrength signalStrength, View view) {
         SignalQuality _signalQuality = SignalUtils.getSignalQuality(signalStrength);
 
-        if (signalQuality == _signalQuality)
+        if (cellSignalQuality == _signalQuality)
             return;
 
-        signalQuality = _signalQuality;
+        cellSignalQuality = _signalQuality;
 
         ImageView cellularIcon = view.findViewById(R.id.cellular_signal_icon);
         TextView cellularText = view.findViewById(R.id.cellular_signal_text);
@@ -77,7 +77,7 @@ public class NetworkFragment extends Fragment {
         int iconRes = R.drawable.ic_network_cell_great;
         int textRes = R.string.cellular_status_great;
 
-        switch (signalQuality) {
+        switch (cellSignalQuality) {
             case NONE_OR_NOT_KNOWN:
                 iconRes = R.drawable.ic_network_cell_none;
                 textRes = R.string.cellular_status_none;
@@ -104,7 +104,44 @@ public class NetworkFragment extends Fragment {
         cellularText.setText(textRes);
     }
 
-    private void handleLocationChange(Intent intent) {
-        Log.d(TAG, "Received broadcast: " + intent.toString());
+    private void handleLocationChange(Intent intent, View view) {
+        SignalQuality gpsQuality = SignalUtils.getGpsQuality(intent);
+
+        if (gpsQuality == gpsSignalQuality)
+            return;
+
+        gpsSignalQuality = gpsQuality;
+
+        ImageView gpsIcon = view.findViewById(R.id.gps_signal_icon);
+        TextView gpsText = view.findViewById(R.id.gps_signal_text);
+
+        int iconRes = R.drawable.ic_gps_fixed;
+        int textRes = R.string.gps_status_great;
+
+        switch (gpsQuality) {
+            case NONE_OR_NOT_KNOWN:
+                iconRes = R.drawable.ic_gps_none;
+                textRes = R.string.gps_status_none;
+                break;
+            case POOR:
+                iconRes = R.drawable.ic_gps_not_fixed;
+                textRes = R.string.gps_status_poor;
+                break;
+            case MODERATE:
+                iconRes = R.drawable.ic_gps_not_fixed;
+                textRes = R.string.gps_status_moderate;
+                break;
+            case GOOD:
+                iconRes = R.drawable.ic_gps_fixed;
+                textRes = R.string.gps_status_good;
+                break;
+            case GREAT:
+                iconRes = R.drawable.ic_gps_fixed;
+                textRes = R.string.gps_status_great;
+                break;
+        }
+
+        gpsIcon.setImageDrawable(ContextCompat.getDrawable(getActivity(), iconRes));
+        gpsText.setText(textRes);
     }
 }

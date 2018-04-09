@@ -116,18 +116,18 @@
 
                 <!-- Good Signal Icon -->
                 <ImageView
-                        android:id="@+id/good_gps_signal_icon"
+                        android:id="@+id/gps_signal_icon"
                         android:tint="@android:color/white"
                         android:layout_width="50dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="10dp"
-                        app:srcCompat="@drawable/ic_gps_fixed"
+                        android:src="@drawable/ic_gps_fixed"
                         android:layout_weight="1"/>
 
                 <!-- Signal Status Text -->
                 <TextView
-                        android:id="@+id/good_gps_signal_text"
-                        android:text="@string/gps_status"
+                        android:id="@+id/gps_signal_text"
+                        android:text="@string/gps_status_good"
                         style="@android:style/TextAppearance.Medium"
                         android:textColor="@android:color/white"
                         android:layout_width="match_parent"
