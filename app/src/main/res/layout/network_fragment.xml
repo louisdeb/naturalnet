@@ -90,13 +90,13 @@
                         android:layout_width="50dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="10dp"
-                        android:src="@drawable/ic_network_cell"
+                        android:src="@drawable/ic_network_cell_great"
                         android:layout_weight="1"/>
 
                 <!-- Signal Status Text -->
                 <TextView
                         android:id="@+id/cellular_signal_text"
-                        android:text="@string/good_cellular_status"
+                        android:text="@string/cellular_status_good"
                         style="@android:style/TextAppearance.Medium"
                         android:textColor="@android:color/white"
                         android:layout_width="match_parent"

@@ -19,7 +19,7 @@ import com.louis.naturalnet.signal.*;
 
 public class NetworkFragment extends Fragment {
 
-    private static String TAG = "NetworkFragment";
+    private final static String TAG = "NetworkFragment";
 
     private boolean expanded = false;
 
@@ -74,33 +74,31 @@ public class NetworkFragment extends Fragment {
         ImageView cellularIcon = view.findViewById(R.id.cellular_signal_icon);
         TextView cellularText = view.findViewById(R.id.cellular_signal_text);
 
-        int iconRes = R.drawable.ic_network_cell;
-        int textRes = R.string.great_cellular_status;
+        int iconRes = R.drawable.ic_network_cell_great;
+        int textRes = R.string.cellular_status_great;
 
         switch (signalQuality) {
             case NONE_OR_NOT_KNOWN:
-                iconRes = R.drawable.ic_network_cell;
-                textRes = R.string.no_cellular_status;
+                iconRes = R.drawable.ic_network_cell_none;
+                textRes = R.string.cellular_status_none;
                 break;
             case POOR:
-                iconRes = R.drawable.ic_network_cell;
-                textRes = R.string.poor_cellular_status;
+                iconRes = R.drawable.ic_network_cell_moderate;
+                textRes = R.string.cellular_status_poor;
                 break;
             case MODERATE:
-                iconRes = R.drawable.ic_network_cell;
-                textRes = R.string.moderate_cellular_status;
+                iconRes = R.drawable.ic_network_cell_moderate;
+                textRes = R.string.cellular_status_moderate;
                 break;
             case GOOD:
-                iconRes = R.drawable.ic_network_cell;
-                textRes = R.string.good_cellular_status;
+                iconRes = R.drawable.ic_network_cell_great;
+                textRes = R.string.cellular_status_good;
                 break;
             case GREAT:
-                iconRes = R.drawable.ic_network_cell;
-                textRes = R.string.great_cellular_status;
+                iconRes = R.drawable.ic_network_cell_great;
+                textRes = R.string.cellular_status_great;
                 break;
-        } // Fill with relevant icons
-
-        // May want to change the values to {Unknown, Poor, Moderate, Good}
+        }
 
         cellularIcon.setImageDrawable(ContextCompat.getDrawable(getActivity(), iconRes));
         cellularText.setText(textRes);
