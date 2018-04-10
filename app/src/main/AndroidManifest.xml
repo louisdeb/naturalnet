@@ -49,11 +49,6 @@
                 android:enabled="true" >
         </receiver>
 
-        <receiver
-                android:name=".bluetooth.BTManager$BTServiceBroadcastReceiver"
-                android:enabled="true" >
-        </receiver>
-
     </application>
 
 </manifest>

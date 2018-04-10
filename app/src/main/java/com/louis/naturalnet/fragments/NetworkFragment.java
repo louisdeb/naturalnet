@@ -1,6 +1,8 @@
 package com.louis.naturalnet.fragments;
 
 import android.app.Fragment;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -51,14 +53,16 @@ public class NetworkFragment extends Fragment {
             }
         });
 
-        IntentFilter filter = new IntentFilter("com.louis.naturalnet.signal.LocationReceiver");
+        IntentFilter locationFilter = new IntentFilter("com.louis.naturalnet.signal.LocationReceiver");
         getActivity().registerReceiver(new LocationReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 // Can do some parsing of the intent here
                 handleLocationChange(intent, view);
             }
-        }, filter);
+        }, locationFilter);
+
+        // Implement a way of gaining access to BTServiceBroadcastReceiver lists
 
         return view;
     }
@@ -144,4 +148,7 @@ public class NetworkFragment extends Fragment {
         gpsIcon.setImageDrawable(ContextCompat.getDrawable(getActivity(), iconRes));
         gpsText.setText(textRes);
     }
+
+    // TODO: Try listen to BTManager & get # of Relays
+    // TODO: Remove concept of sinks & sources from BTManager & focus on maintaining connections with all relays
 }
