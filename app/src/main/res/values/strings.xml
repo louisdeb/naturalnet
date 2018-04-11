@@ -20,6 +20,12 @@
     <string name="gps_status_poor">Poor GPS Signal</string>
     <string name="gps_status_none">No GPS Signal</string>
 
-    <string name="net_status">Good Peer Connectivity</string>
-    <string name="net_connections">- 12 Nodes Connected</string>
+    <string name="net_status_great">Great Peer Connectivity</string>
+    <string name="net_status_good">Good Peer Connectivity</string>
+    <string name="net_status_poor">Poor Peer Connectivity</string>
+    <string name="net_status_none">No Peer Connectivity</string>
+
+    <string name="net_connections_prefix">- </string>
+    <string name="net_connections_default">0</string>
+    <string name="net_connections_suffix">Nodes Connected</string>
 </resources>

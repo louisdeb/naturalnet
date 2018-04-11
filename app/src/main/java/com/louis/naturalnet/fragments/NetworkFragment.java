@@ -8,7 +8,6 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.telephony.SignalStrength;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +28,7 @@ public class NetworkFragment extends Fragment {
 
     private SignalQuality cellSignalQuality;
     private SignalQuality gpsSignalQuality;
+    private int numPeers;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -70,7 +70,7 @@ public class NetworkFragment extends Fragment {
             @Override
             public void onReceive(Context context, Intent intent) {
                 ArrayList<BluetoothDevice> devices = intent.getParcelableArrayListExtra("devices");
-                Log.d(TAG, "Got " + devices.size() + " devices");
+                handlePeersChange(devices, view);
             }
         }, bluetoothFilter);
 
@@ -159,6 +159,38 @@ public class NetworkFragment extends Fragment {
         gpsText.setText(textRes);
     }
 
-    // TODO: Try listen to BTManager & get # of Relays
+    private void handlePeersChange(ArrayList<BluetoothDevice> peers, View view) {
+        int _numPeers = peers.size();
+
+        if (_numPeers == numPeers)
+            return;
+
+        numPeers = _numPeers;
+
+        ImageView peersIcon = view.findViewById(R.id.net_signal_icon);
+        TextView netSignalText = view.findViewById(R.id.net_signal_text);
+        TextView peersConnectionsText = view.findViewById(R.id.net_number_of_connections);
+
+        int iconRes = R.drawable.ic_net_signal_great;
+        int netText = R.string.net_status_great;
+
+        // Determine some metric for how good the peer connectivity is
+        // Doesn't necessarily mean we are connected to the wider network
+        if (numPeers == 0) {
+            iconRes = R.drawable.ic_net_signal_none;
+            netText = R.string.net_status_none;
+        } else if (numPeers <= 2) {
+            iconRes = R.drawable.ic_net_signal_great;
+            netText = R.string.net_status_poor;
+        } else if (numPeers <= 5) {
+            iconRes = R.drawable.ic_net_signal_great;
+            netText = R.string.net_status_good;
+        }
+
+        peersIcon.setImageDrawable(ContextCompat.getDrawable(getActivity(), iconRes));
+        netSignalText.setText(netText);
+        peersConnectionsText.setText(Integer.toString(numPeers));
+    }
+
     // TODO: Remove concept of sinks & sources from BTManager & focus on maintaining connections with all relays
 }

@@ -142,7 +142,7 @@
             <LinearLayout
                     android:orientation="vertical"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp">
 
                 <LinearLayout
@@ -152,18 +152,18 @@
 
                     <!-- Good Signal Icon -->
                     <ImageView
-                            android:id="@+id/good_net_signal_icon"
+                            android:id="@+id/net_signal_icon"
                             android:tint="@android:color/white"
                             android:layout_width="50dp"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="10dp"
-                            app:srcCompat="@drawable/ic_net_signal"
+                            android:src="@drawable/ic_net_signal_great"
                             android:layout_weight="1"/>
 
                     <!-- Signal Status Text -->
                     <TextView
-                            android:id="@+id/good_net_signal_text"
-                            android:text="@string/net_status"
+                            android:id="@+id/net_signal_text"
+                            android:text="@string/net_status_good"
                             style="@android:style/TextAppearance.Medium"
                             android:textColor="@android:color/white"
                             android:layout_width="match_parent"
@@ -175,17 +175,50 @@
                 </LinearLayout>
 
                 <!-- Signal Status Text -->
-                <TextView
-                        android:id="@+id/net_number_of_connections"
-                        android:text="@string/net_connections"
-                        style="@android:style/TextAppearance.Small"
-                        android:textColor="@android:color/white"
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_marginStart="30dp"
-                        android:gravity="center_vertical"
-                        android:layout_gravity="center_vertical"
-                        android:layout_weight="1"/>
+                <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+                    <TextView
+                            android:id="@+id/net_number_of_connections_prefix"
+                            android:text="@string/net_connections_prefix"
+                            style="@android:style/TextAppearance.Small"
+                            android:textColor="@android:color/white"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="30dp"
+                            android:gravity="center_vertical"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"/>
+
+                    <TextView
+                            android:id="@+id/net_number_of_connections"
+                            android:text="@string/net_connections_default"
+                            style="@android:style/TextAppearance.Small"
+                            android:textColor="@android:color/white"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:gravity="center_vertical"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"/>
+
+
+                    <TextView
+                            android:id="@+id/net_number_of_connections_suffix"
+                            android:text="@string/net_connections_suffix"
+                            style="@android:style/TextAppearance.Small"
+                            android:textColor="@android:color/white"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:gravity="center_vertical"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="2"/>
+
+                </LinearLayout>
+
 
             </LinearLayout>
 
