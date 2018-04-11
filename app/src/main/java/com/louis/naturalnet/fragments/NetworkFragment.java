@@ -1,7 +1,6 @@
 package com.louis.naturalnet.fragments;
 
 import android.app.Fragment;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
@@ -9,6 +8,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.telephony.SignalStrength;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +16,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.louis.naturalnet.R;
+import com.louis.naturalnet.bluetooth.BTDeviceListener;
 import com.louis.naturalnet.signal.*;
+
+import java.util.ArrayList;
 
 public class NetworkFragment extends Fragment {
 
@@ -62,7 +65,14 @@ public class NetworkFragment extends Fragment {
             }
         }, locationFilter);
 
-        // Implement a way of gaining access to BTServiceBroadcastReceiver lists
+        IntentFilter bluetoothFilter = new IntentFilter("com.louis.naturalnet.bluetooth.BTDeviceListener");
+        getActivity().registerReceiver(new BTDeviceListener() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                ArrayList<BluetoothDevice> devices = intent.getParcelableArrayListExtra("devices");
+                Log.d(TAG, "Got " + devices.size() + " devices");
+            }
+        }, bluetoothFilter);
 
         return view;
     }

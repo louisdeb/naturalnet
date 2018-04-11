@@ -21,7 +21,7 @@ public class BTManager {
 
     public BTManager(Context _context) {
         context = _context;
-        mBroadcastReceiver = new BTServiceBroadcastReceiver(context, this);
+        mBroadcastReceiver = new BTServiceBroadcastReceiver(this);
     }
 
     public void registerBroadcastReceivers(){
