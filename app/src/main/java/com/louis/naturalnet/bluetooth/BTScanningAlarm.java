@@ -27,27 +27,22 @@ public class BTScanningAlarm extends BroadcastReceiver {
 	private static BTController mBTController = null;
 
 	/**
-	 * This constructor is called the alarm manager.
-	 */
-	public BTScanningAlarm(){}
-
-	/**
 	 * Starts the alarm, need to give it a user defined bluetooth controller (define handler e.g.)
 	 */
-
-	public BTScanningAlarm(Context context, BTController btController) {          
+	BTScanningAlarm(Context context, BTController btController) {
 		// init bt controller
 		mBTController = btController;
 
-		if(BluetoothAdapter.getDefaultAdapter().isEnabled()){                           
+		if (BluetoothAdapter.getDefaultAdapter().isEnabled()) {
 			scheduleScanning(context, System.currentTimeMillis());
 		}
 	}
+
 	/**
 	 * Acquire the Wake Lock
 	 * @param context
 	 */
-	public static void getWakeLock(Context context){
+	public static void getWakeLock(Context context) {
 
 		releaseWakeLock();
 
@@ -56,12 +51,11 @@ public class BTScanningAlarm extends BroadcastReceiver {
 		wakeLock.acquire();
 	}
 
-	public static void releaseWakeLock(){
-		if(wakeLock != null)
-			if(wakeLock.isHeld())
+	private static void releaseWakeLock() {
+		if (wakeLock != null)
+			if (wakeLock.isHeld())
 				wakeLock.release();
 	}
-
 
 	/**
 	 * Stop the scheduled alarm
@@ -70,7 +64,7 @@ public class BTScanningAlarm extends BroadcastReceiver {
 	public static void stopScanning(Context context) {
 		AlarmManager alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
 
-		if(alarmMgr != null){
+		if (alarmMgr != null) {
 			Intent intent = new Intent(context, BTScanningAlarm.class);
 			alarmIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 			alarmMgr.cancel(alarmIntent);
@@ -82,29 +76,28 @@ public class BTScanningAlarm extends BroadcastReceiver {
 	 * Schedules a Scanning communication
 	 * @param time after how many milliseconds (0 for immediately)?
 	 */
-	public void scheduleScanning(Context context, long time) {
-
+	private void scheduleScanning(Context context, long time) {
 		Log.d(TAG, "scheduling a new Bluetooth scanning in " + Long.toString( time ));
-		AlarmManager alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+		AlarmManager alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
 		Intent intent = new Intent(context, BTScanningAlarm.class);
 		alarmIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-		if(alarmMgr != null){
+
+		if (alarmMgr != null) {
 			alarmMgr.cancel(alarmIntent);
+            alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, time, Constants.SCAN_INTERVAL, alarmIntent);
 		}
-		interval = Constants.SCAN_INTERVAL;
-		
-		alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, time, interval, alarmIntent);
 	}
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		// start scan
+		// Start scan.
 		Log.d(TAG, "start a scan at " + String.valueOf(System.currentTimeMillis()));
-		if(mBTController != null){
+		if (mBTController != null) {
 			mBTController.startBTScan(true, Constants.SCAN_DURATION);
 		}
-		// schedule a new scan
+
+		// Schedule a new scan.
 		Random r = new Random();
 		scheduleScanning(context, System.currentTimeMillis() + interval + (r.nextInt(2000 - 1000) + 1000) * 10);
 	}

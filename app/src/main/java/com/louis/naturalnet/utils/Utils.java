@@ -7,15 +7,8 @@ public class Utils {
 	}
 	
 	public static boolean isOppNetRelay(String s){
-		if(s.length() > 5){
-			if(s.substring(0, 6).equals("OppNet") && getDeviceType(s).compareToIgnoreCase("R") == 0){
-				return true;
-			}else{
-				return false;
-			}
-		}else{
-			return false;
-		}
+		return (s.length() > 5) &&
+			   (s.substring(0, 6).equals("OppNet") && getDeviceType(s).compareToIgnoreCase("R") == 0);
 	}
 	
 	public static int getQueueLen(String s){

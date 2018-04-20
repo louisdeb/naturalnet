@@ -24,7 +24,7 @@ public class BTManager {
         mBroadcastReceiver = new BTServiceBroadcastReceiver(this);
     }
 
-    public void registerBroadcastReceivers(){
+    public void registerBroadcastReceivers() {
         // Register the bluetooth BroadcastReceiver
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_UUID);
