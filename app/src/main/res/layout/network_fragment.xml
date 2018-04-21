@@ -176,6 +176,7 @@
 
                 <!-- Signal Status Text -->
                 <LinearLayout
+                        android:id="@+id/net_number_of_connections_wrapper"
                         android:orientation="horizontal"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content">

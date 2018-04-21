@@ -69,6 +69,12 @@ public class NetworkFragment extends Fragment {
         getActivity().registerReceiver(new BTDeviceListener() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                boolean bluetoothSupported = intent.getBooleanExtra("btSupported", true);
+                if (!bluetoothSupported) {
+                    handleBluetoothNotSupported(view);
+                    return;
+                }
+
                 ArrayList<BluetoothDevice> devices = intent.getParcelableArrayListExtra("devices");
                 handlePeersChange(devices, view);
             }
@@ -159,6 +165,17 @@ public class NetworkFragment extends Fragment {
         gpsText.setText(textRes);
     }
 
+    private void handleBluetoothNotSupported(View view) {
+        ImageView peersIcon = view.findViewById(R.id.net_signal_icon);
+        TextView netSignalText = view.findViewById(R.id.net_signal_text);
+        LinearLayout peersConnectionsLayout = view.findViewById(R.id.net_number_of_connections_wrapper);
+
+        peersIcon.setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_net_signal_none));
+        netSignalText.setText(R.string.bt_not_supported);
+
+        peersConnectionsLayout.setVisibility(View.GONE);
+    }
+
     private void handlePeersChange(ArrayList<BluetoothDevice> peers, View view) {
         int _numPeers = peers.size();
 
@@ -170,6 +187,7 @@ public class NetworkFragment extends Fragment {
         ImageView peersIcon = view.findViewById(R.id.net_signal_icon);
         TextView netSignalText = view.findViewById(R.id.net_signal_text);
         TextView peersConnectionsText = view.findViewById(R.id.net_number_of_connections);
+        LinearLayout peersConnectionsLayout = view.findViewById(R.id.net_number_of_connections_wrapper);
 
         int iconRes = R.drawable.ic_net_signal_great;
         int netText = R.string.net_status_great;
@@ -186,6 +204,8 @@ public class NetworkFragment extends Fragment {
             iconRes = R.drawable.ic_net_signal_great;
             netText = R.string.net_status_good;
         }
+
+        peersConnectionsLayout.setVisibility(View.VISIBLE);
 
         peersIcon.setImageDrawable(ContextCompat.getDrawable(getActivity(), iconRes));
         netSignalText.setText(netText);

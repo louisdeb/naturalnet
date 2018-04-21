@@ -25,6 +25,8 @@
     <string name="net_status_poor">Poor Peer Connectivity</string>
     <string name="net_status_none">No Peer Connectivity</string>
 
+    <string name="bt_not_supported">Bluetooth Not Supported</string>
+
     <string name="net_connections_prefix">- </string>
     <string name="net_connections_default">0</string>
     <string name="net_connections_suffix">Nodes Connected</string>

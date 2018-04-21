@@ -6,7 +6,6 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.widget.Toast;
 
 public class BTManager {
 
@@ -42,9 +41,7 @@ public class BTManager {
         BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBluetoothAdapter == null) {
             // Device does not support Bluetooth
-            // We may want to inform the activity of this and perform some UI actions based on it
-
-            Toast.makeText(context, "Bluetooth not supported", Toast.LENGTH_SHORT).show();
+            alertBluetoothNotSupported(activity);
             return;
         }
 
@@ -66,5 +63,11 @@ public class BTManager {
 
     void connectBTServer(BluetoothDevice device, long timeout) {
         mBTController.connectBTServer(device, timeout);
+    }
+
+    private void alertBluetoothNotSupported(Activity activity) {
+        Intent deviceBroadcastIntent = new Intent("com.louis.naturalnet.bluetooth.BTDeviceListener");
+        deviceBroadcastIntent.putExtra("btSupported", false);
+        activity.getBaseContext().sendBroadcast(deviceBroadcastIntent);
     }
 }
