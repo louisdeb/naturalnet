@@ -5,7 +5,11 @@ public class Utils {
 	public static boolean isInteger(String s) {
 	    return isInteger(s,10);
 	}
-	
+
+	// These all work by checking information in the device name.
+    // We might not actually want to store this information in the device name but instead
+    // send it in a packet.
+
 	public static boolean isOppNetRelay(String s){
 		return (s.length() > 5) &&
 			   (s.substring(0, 6).equals("OppNet") && getDeviceType(s).compareToIgnoreCase("R") == 0);
@@ -23,11 +27,11 @@ public class Utils {
 		return s.split(":")[2];
 	}
 	
-	public static String getDeviceType(String s){
+	private static String getDeviceType(String s){
 		return s.split(":")[1];
 	}
 	
-	public static boolean isInteger(String s, int radix) {
+	private static boolean isInteger(String s, int radix) {
 	    if(s.isEmpty()) return false;
 	    for(int i = 0; i < s.length(); i++) {
 	        if(i == 0 && s.charAt(i) == '-') {

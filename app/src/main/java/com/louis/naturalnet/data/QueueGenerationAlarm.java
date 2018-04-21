@@ -14,8 +14,8 @@ import android.os.PowerManager.WakeLock;
 import android.util.Log;
 
 public class QueueGenerationAlarm extends BroadcastReceiver {
-	// Class constants
-	static final String TAG = "QueueGenerationAlarm"; /** for logging */   
+
+	private static final String TAG = "QueueGenerationAlarm";
 	private static WakeLock wakeLock;
 	private static final String WAKE_LOCK = "DataAlarmWakeLock";
 
@@ -31,7 +31,7 @@ public class QueueGenerationAlarm extends BroadcastReceiver {
 	/**
 	 * Starts the alarm, need to give it a user defined bluetooth controller (define handler e.g.)
 	 */
-	public QueueGenerationAlarm(Context context) {          
+	QueueGenerationAlarm(Context context) {
 		scheduleQueueGeneration(context, System.currentTimeMillis());
 	}
 
@@ -48,7 +48,7 @@ public class QueueGenerationAlarm extends BroadcastReceiver {
 		wakeLock.acquire();
 	}
 
-	public static void releaseWakeLock(){
+	private static void releaseWakeLock(){
 		if (wakeLock != null)
 			if (wakeLock.isHeld())
 				wakeLock.release();
@@ -58,7 +58,7 @@ public class QueueGenerationAlarm extends BroadcastReceiver {
 	 * Stop the scheduled alarm
 	 * @param context
 	 */
-	public static void stopGenerating(Context context) {
+	static void stopGenerating(Context context) {
 		AlarmManager alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
 
 		if (alarmMgr != null) {
@@ -73,7 +73,7 @@ public class QueueGenerationAlarm extends BroadcastReceiver {
 	 * Schedules a queue generation event
 	 * @param time after how many milliseconds (0 for immediately)?
 	 */
-	public void scheduleQueueGeneration(Context context, long time) {
+	private void scheduleQueueGeneration(Context context, long time) {
 
 		Log.d(TAG, "generate new data in " + Long.toString( time ));
 		AlarmManager alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
