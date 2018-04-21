@@ -27,159 +27,129 @@ import android.util.Log;
  * @author fshi
  *
  */
-public class BTCom {
+class BTCom {
 
-	// tag
-	private final String TAG = "BTCom";
+	private static final String TAG = "BTCom";
 
-	// constants
 	private final String BTRecordName = "com.louis.bluetooth";
-	public final static int BT_CLIENT_CONNECT_FAILED = 10404;
-	public final static int BT_CLIENT_CONNECTED = 10401;
-	public final static int BT_SERVER_CONNECTED = 10402;
-	public final static int BT_DATA = 10403;
-	public final static int BT_CLIENT_ALREADY_CONNECTED = 10405;
-	public final static int BT_DISCONNECTED = 10406;
-	public final static int BT_SUCCESS = 10407;
-	public final static String BT_DATA_CONTENT = "bt_data"; // data received from another device
-	public final static String BT_DEVICE_MAC = "bt_device_mac"; // mac address of the communicating device
-	public final static String BT_DEVICE_NAME = "bt_device_name"; // name of the peer device
+	final static int BT_CLIENT_CONNECT_FAILED = 10404;
+	final static int BT_CLIENT_CONNECTED = 10401;
+	final static int BT_SERVER_CONNECTED = 10402;
+	final static int BT_DATA = 10403;
+	final static int BT_CLIENT_ALREADY_CONNECTED = 10405;
+	final static int BT_DISCONNECTED = 10406;
+	final static int BT_SUCCESS = 10407;
+	final static String BT_DATA_CONTENT = "bt_data"; // data received from another device
+	final static String BT_DEVICE_MAC = "bt_device_mac"; // mac address of the communicating device
+	final static String BT_DEVICE_NAME = "bt_device_name"; // name of the peer device
 
-	// default UUID	list
+	// Default UUID	list.
 	private static UUID MY_UUID = UUID.fromString("8113ac40-438f-11e1-b86c-0800200c9a60");
 
 	private BluetoothAdapter mBluetoothAdapter;
 
-	// all received messages are sent through this messenger to its parent
-	Messenger mMessenger = null;
+	// All received messages are sent through this messenger to its parent.
+	private Messenger mMessenger = null;
 
-	private ArrayList<ConnectedThread> connections = new ArrayList<ConnectedThread>();
+	private ArrayList<ConnectedThread> connections = new ArrayList<>();
 
-	// current connection state, only one server thread and one client thread
+	// Current connection state, only one server thread and one client thread.
 	private ServerThread mServerThread;
 
 	private final static StringBuffer sbLock = new StringBuffer();
 
 	private Handler timeoutHandler = new Handler();
 
-	public static BTCom _obj = null;
+	private static BTCom _this = null;
 
-	/**
-	 * Constructor. Prepares a new BT interface. 
-	 */
+	// Constructor. Prepares a new BT interface.
 	private BTCom() {
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 	}
 
-	/**
-	 * singleton
-	 * @return
-	 */
-	public static BTCom getObject(){
-		if(_obj == null){
-			_obj = new BTCom();
+	static BTCom getInstance(){
+		if(_this == null){
+			_this = new BTCom();
 		}
-		return _obj;
+		return _this;
 	}
 
-	public boolean setCallback(Messenger callback){
-		if(mMessenger == null){
+	void setCallback(Messenger callback) {
+		if(mMessenger == null)
 			mMessenger = callback;
-			return true;
-		}
-		else{
-			return false;
-		}
 	}
 
-	// used to managed connections
-	public synchronized void stopConnection(String MAC){
-		for(ConnectedThread connection : connections){
-			if(connection.getMac().equals(MAC)){
+	// Used to managed connections
+	synchronized void stopConnection(String MAC){
+		for (ConnectedThread connection : connections) {
+			if (connection.getMac().equals(MAC)) {
 				connection.cancel();
 				connections.remove(connection);
 				break;
 			}
 		}
+
 		Log.d(TAG, "active connection # " + String.valueOf(connections.size()));
 	}
 
-	// used to send data to a dest
-	public synchronized boolean send(String MAC, JSONObject data){
-		for(ConnectedThread connection : connections){
-			if(connection.getMac().equals(MAC)){
+	// Used to send data to a dest
+	synchronized void send(String MAC, JSONObject data){
+		for (ConnectedThread connection : connections) {
+			if (connection.getMac().equals(MAC))
 				connection.writeObject(data);
-				return true;
-			}
 		}
-		return false;
 	}
 
-	// used to send data to a dest
-	public synchronized boolean send(String MAC, String data){
-		for(ConnectedThread connection : connections){
-			if(connection.getMac().equals(MAC)){
+	// Used to send data to a dest
+	synchronized void send(String MAC, String data){
+		for (ConnectedThread connection : connections) {
+			if (connection.getMac().equals(MAC))
 				connection.writeString(data);
-				return true;
-			}
 		}
-		return false;
 	}
 
-	/**
-	 * Start listening
-	 * @return
-	 */
-	public synchronized void startServer(){
+    // Start listening.
+	synchronized void startServer(){
 		stopServer();
 		mServerThread = new ServerThread(MY_UUID);             
 		mServerThread.start();
-		Log.d(TAG, "server started");
+
+		Log.d(TAG, "Server started");
 	}
 
-	/**
-	 * stop listening
-	 * @return
-	 */
-	public void stopServer(){
-		if(mServerThread != null){
+    // Stop listening.
+	void stopServer(){
+		if (mServerThread != null)
 			mServerThread.cancel();
-		}
 	}
 
-	/**
-	 * connect to a BT device
-	 * @return
-	 */
-	public synchronized void connect(BluetoothDevice btDevice, long timeout){
+    // Connect a BT device.
+	synchronized void connect(BluetoothDevice btDevice, long timeout){
 		// Start the thread to connect with the given device
 		ClientThread clientThread = new ClientThread(btDevice, sbLock, MY_UUID, timeout);
 		clientThread.start();
 	}
 
-	/**
-	 * get the number of active connections
-	 * @return
-	 */
-	public int getActiveConnectionsCount(){
+    // Get the number of active connections.
+	private int getActiveConnectionsCount() {
 		return connections.size();
 	}
 
-	/**
-	 * start scan service
-	 * @param scanStart
-	 */
-	public void startScan(boolean scanStart, long duration) {
-		if (scanStart){ // if command is to start scanning
-			if(getActiveConnectionsCount() == 0){
-				if (mBluetoothAdapter.isDiscovering()){ // if scan is already started, do nothing
-					return;//mBluetoothAdapter.cancelDiscovery();
+    // Start scan service
+	void startScan(boolean scanStart, long duration) {
+		if (scanStart) {
+			if (getActiveConnectionsCount() == 0) {
+
+                // If scan is already started, do nothing.
+				if (mBluetoothAdapter.isDiscovering()) {
+                    // mBluetoothAdapter.cancelDiscovery();
+					return;
 				}
 
-				//if(getActiveConnectionsCount() == 0){
+				// if (getActiveConnectionsCount() == 0) {
 				mBluetoothAdapter.startDiscovery();
 
-				// Cancel the discovery process after SCAN_INTERVAL
+				// Cancel the discovery process after SCAN_INTERVAL.
 				final Handler discoveryHandler = new Handler();
 				discoveryHandler.postDelayed(new Runnable() {
 					@Override
@@ -189,10 +159,8 @@ public class BTCom {
 						}
 					}
 				}, duration);
-				//}
 			}
-		}
-		else{ // if command is to stop scanning
+		} else {
 			mBluetoothAdapter.cancelDiscovery();
 		}
 	}
@@ -206,11 +174,12 @@ public class BTCom {
 		private final BluetoothServerSocket mServerSocket;
 		private UUID uuid;
 
-		public ServerThread(UUID uuid) {
+		ServerThread(UUID uuid) {
 			this.uuid = uuid;
-			// Use a temporary object that is later assigned to mmServerSocket,
-			// because mmServerSocket is final
+
+			// Use a temporary object that is later assigned to mmServerSocket because mmServerSocket is final.
 			BluetoothServerSocket tmp = null;
+
 			try {
 				// MY_UUID is the app's UUID string, also used by the client code
 				tmp = mBluetoothAdapter.listenUsingInsecureRfcommWithServiceRecord(BTRecordName, uuid);
@@ -221,8 +190,9 @@ public class BTCom {
 		}
 
 		public void run() {
-			BluetoothSocket socket = null;
-			// Keep listening until exception occurs or a socket is returned
+			BluetoothSocket socket;
+
+			// Keep listening until exception occurs or a socket is returned.
 			while (true) {
 				try {
 					socket = mServerSocket.accept();
@@ -231,14 +201,17 @@ public class BTCom {
 					e.printStackTrace();
 					break;
 				}
+
 				// If a connection was accepted
 				if (socket != null && socket.isConnected()) {
-					if(mBluetoothAdapter.isDiscovering()){
+					if (mBluetoothAdapter.isDiscovering())
 						mBluetoothAdapter.cancelDiscovery();
-					}
-					// Do work to manage the connection (in a separate thread)
-					Log.d(TAG, "Connected as a server");//manageConnectedSocket(socket);
-					// start a new thread to handling data exchange
+
+					// Do work to manage the connection (in a separate thread).
+                    //manageConnectedSocket(socket);
+					Log.d(TAG, "Connected as a server");
+
+					// Start a new thread to handling data exchange.
 					connected(socket, socket.getRemoteDevice(), false);
 				}
 			}
@@ -248,11 +221,10 @@ public class BTCom {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			return;
 		}
 
-		/** Will cancel the listening socket, and cause the thread to finish */
-		public void cancel() {
+		// Will cancel the listening socket, and cause the thread to finish.
+		void cancel() {
 			try {
 				mServerSocket.close();
 			} catch (IOException e) {
@@ -274,50 +246,48 @@ public class BTCom {
 		private boolean clientConnected = false;
 		private StringBuffer lock;
 
-		public ClientThread(BluetoothDevice device, StringBuffer sb, UUID uuid, long timeout) {
-			// Use a temporary object that is later assigned to mmSocket,
-			// because mmSocket is final
+		ClientThread(BluetoothDevice device, StringBuffer sb, UUID uuid, long timeout) {
 			this.timeout = timeout;
-			BluetoothSocket tmp = null;
-			mBTDevice = device;
-			this.lock=sb;
+            mBTDevice = device;
+            this.lock=sb;
 
-			// Get a BluetoothSocket to connect with the given BluetoothDevice
+            // Use a temporary object that is later assigned to mmSocket because mmSocket is final
+			BluetoothSocket tmp = null;
+
+			// Get a BluetoothSocket to connect with the given BluetoothDevice.
 			try {
-				// MY_UUID is the app's UUID string, also used by the server code
+				// MY_UUID is the app's UUID string, also used by the server code.
 				tmp = mBTDevice.createInsecureRfcommSocketToServiceRecord(uuid);
 			} catch (IOException e) { }
 			mClientSocket = tmp;
 		}
 
 		public void run() {
-			// Cancel discovery because it will slow down the connection
-			if(mBluetoothAdapter.isDiscovering()){
+			// Cancel discovery because it will slow down the connection.
+			if (mBluetoothAdapter.isDiscovering())
 				mBluetoothAdapter.cancelDiscovery();
-			}
 			// timestamp before connection
 			try {
-				// Connect the device through the socket. This will block
-				// until it succeeds or throws an exception
-				// stop the connection after 5 seconds
+				// Connect the device through the socket. This will block until it succeeds or throws an exception.
+				// Stop the connection after 5 seconds.
+
 				boolean connExisted = false;
-				for(ConnectedThread connection : connections){
-					if(connection.getMac().equals(mBTDevice.getAddress())){
+				for (ConnectedThread connection : connections) {
+					if (connection.getMac().equals(mBTDevice.getAddress()))
 						connExisted = true;
-					}
 				}
-				if(!connExisted){
-					synchronized (lock){
+				if (!connExisted) {
+					synchronized (lock) {
 						timeoutHandler.postDelayed(new Runnable() {
 							@Override
 							public void run() {
-								if(!clientConnected){
+								if (!clientConnected) {
 									cancel();
-									if(mMessenger != null){
+									if (mMessenger != null) {
 										try {
 											Message msg=Message.obtain();
 											msg.what = BT_CLIENT_CONNECT_FAILED;
-											// send necessary info to the handler
+											// Send necessary info to the handler.
 											Bundle b = new Bundle();
 											b.putString(BT_DEVICE_MAC, mBTDevice.getAddress());
 											msg.setData(b);
@@ -334,11 +304,12 @@ public class BTCom {
 					}
 					clientConnected = true;
 					Log.d(TAG, "Connected as a client");
-					// Do work to manage the connection (in a separate thread)
-					// start a new thread to handling data exchange
+
+                    // Do work to manage the connection (in a separate thread).
+
+					// Start a new thread to handling data exchange.
 					connected(mClientSocket, mClientSocket.getRemoteDevice(), true);
-				}
-				else{
+				} else {
 					// already connected
 //					if(mMessenger != null){
 //						try {
@@ -365,12 +336,11 @@ public class BTCom {
 				}
 			}
 
-			// Do work to manage the connection (in a separate thread)
-			return;
+			// Do work to manage the connection (in a separate thread).
 		}
 
-		/* Call this from the main activity to shutdown the connection */
-		public void cancel() {
+		// Call this from the main activity to shutdown the connection
+		void cancel() {
 			try {
 				mClientSocket.close();
 			} catch (IOException e) {
@@ -389,20 +359,23 @@ public class BTCom {
 		ConnectedThread newConn = new ConnectedThread(socket);
 		newConn.start();
 		connections.add(newConn);
+
 		// Send the info of the connected device back to the UI Activity
 		Message msg=Message.obtain();
-		if(iAmClient){
+		if (iAmClient) {
 			msg.what = BT_CLIENT_CONNECTED;
-		}else{
+		} else {
 			msg.what = BT_SERVER_CONNECTED;
 		}
-		// send necessary info to the handler
+
+		// Send necessary info to the handler
 		Bundle b = new Bundle();
 		b.putString(BT_DEVICE_MAC, device.getAddress());
 		b.putString(BT_DEVICE_NAME, device.getName());
 		msg.setData(b);
+
 		try {
-			if(mMessenger != null)
+			if (mMessenger != null)
 				mMessenger.send(msg);
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
@@ -421,7 +394,7 @@ public class BTCom {
 		private final OutputStream mmOutStream;
 		private boolean isCancelled = false;
 		
-		public ConnectedThread(BluetoothSocket socket) {
+		ConnectedThread(BluetoothSocket socket) {
 			mConnectedSocket = socket;
 			InputStream tmpIn = null;
 			OutputStream tmpOut = null;
@@ -439,7 +412,7 @@ public class BTCom {
 			mmOutStream = tmpOut;
 		}
 
-		public String getMac(){
+		String getMac(){
 			return mConnectedSocket.getRemoteDevice().getAddress();
 		}
 
@@ -453,8 +426,7 @@ public class BTCom {
 					// Read from the InputStream
 					buffer = in.readLine();
 					// Send the obtained bytes to the UI activity
-					if(mMessenger != null)
-					{
+					if (mMessenger != null) {
 						try {
 							// Send the obtained bytes to the UI Activity
 							Message msg=Message.obtain();
@@ -470,14 +442,16 @@ public class BTCom {
 					}
 				} catch (IOException e) {
 					e.printStackTrace();
-					// send message to update UI
+
+					// Send message to update UI
 					try {
-						Message msg=Message.obtain();
-						Bundle b = new Bundle();
-						if(isCancelled)
-							msg.what = BT_SUCCESS;
-						else
-							msg.what = BT_DISCONNECTED;
+                        Message msg = Message.obtain();
+                        Bundle b = new Bundle();
+                        if (isCancelled) {
+                            msg.what = BT_SUCCESS;
+                        } else {
+                            msg.what = BT_DISCONNECTED;
+                        }
 						b.putString(BT_DEVICE_MAC, this.getMac());
 						msg.setData(b);
 						mMessenger.send(msg);
@@ -485,15 +459,17 @@ public class BTCom {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
-					// remove the connection
+
+					// Remove the connection
 					stopConnection(getMac());
 					break;
-					// stop the connected thread
+
+					// Stop the connected thread
 				}
 			}
 		}
 
-		public void writeObject(JSONObject json) {
+		void writeObject(JSONObject json) {
 			try {
 				DataOutputStream out = new DataOutputStream(mmOutStream);
 				out.writeBytes(json.toString() + "\n");
@@ -506,7 +482,7 @@ public class BTCom {
 			}
 		}
 
-		public void writeString(String string) {
+		void writeString(String string) {
 			try {
 				DataOutputStream out = new DataOutputStream(mmOutStream);
 				out.writeBytes(string);
@@ -519,8 +495,8 @@ public class BTCom {
 			}
 		}
 
-		/* Call this from the main activity to shutdown the connection */
-		public void cancel() {
+		// Call this from the main activity to shutdown the connection
+		void cancel() {
 			isCancelled = true;
 			try {
 				mmInStream.close();

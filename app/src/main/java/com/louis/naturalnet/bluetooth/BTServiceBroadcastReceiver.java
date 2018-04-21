@@ -18,6 +18,7 @@ import java.util.ArrayList;
     This class handles discovering and saving bluetooth devices.
     When a scan has finished, data in ExchangeData is exchanged.
  */
+
 public class BTServiceBroadcastReceiver extends BroadcastReceiver {
 
     private static final String TAG = "BTBroadcastReceiver";
@@ -49,17 +50,17 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver {
 
             Log.d(TAG, "Got Device : " + device.getName() + ", " + deviceMac);
 
-//            if (device.getName() != null) {
-                // Check if the device is an OppNet relay
-//                if (Utils.isOppNetRelay(device.getName())) {
-                    if (!devicesFoundStringArray.contains(deviceMac)) {
+            // Instead of checking whether the device is a relay here, let's do some check in BTCom (or at least
+            // use some custom handshake to determine it.
+            // So we may want to store a list of discovered devices and a separate list of NaturalNet devices.
 
-                        // Add the device to our list of relays
-                        devicesFoundStringArray.add(deviceMac);
-                        devices.add(device);
-                    }
-//                }
-//            }
+            if (!devicesFoundStringArray.contains(deviceMac)) {
+
+                // Add the device to our list of relays
+                devicesFoundStringArray.add(deviceMac);
+                devices.add(device);
+            }
+
         } else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
             // Start a new scan
 
