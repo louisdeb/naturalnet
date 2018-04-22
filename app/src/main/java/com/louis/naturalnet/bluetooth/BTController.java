@@ -22,7 +22,7 @@ public class BTController {
 		mBTHelper.setCallback(mMessenger);
 	}
 
-	void startBTScan(boolean isStart, long duration){
+	void startBTScan(long duration){
 			mBTHelper.startScan(isStart, duration);
 	}
 
@@ -34,7 +34,7 @@ public class BTController {
 		mBTHelper.stopServer();
 	}
 
-	void connectBTServer(BluetoothDevice btDevice, long timeout){
+	void connectToBTServer(BluetoothDevice btDevice, long timeout){
 		mBTHelper.connect(btDevice, timeout);
 	}
 

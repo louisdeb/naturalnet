@@ -1,5 +1,7 @@
 package com.louis.naturalnet.utils;
 
+import java.util.UUID;
+
 public abstract class Constants {
 
 	public static long SCAN_INTERVAL = 15000;
@@ -22,16 +24,27 @@ public abstract class Constants {
 	public static long BT_CLIENT_TIMEOUT = 5000;
 	public static long BT_CLIENT_TIMEOUT_SAVING = 3000;
 
-	public static long SENSOR_CONTACT_INTERVAL = 60000;
-	public static long SINK_CONTACT_INTERVAL = 240000;
 
-	public static String SP_KEY_BATTERY = "sp_battery_saving_mode";
-	public static String SP_KEY_ENERGY = "sp_energy_awareness_mode";
-	
-	public static String INTENT_KEY_POSITION = "intent_key_position";
-	
-	// configure one's experiment id and application id
-	public static String EXPERIMENT_ID = "58dd1015aa3208fc2229311f";//"58beba76d0010cb62fa01679";"58a19f2ac2f43c7c37d174cd";
-	public static String APPLICATION_ID = "58dd128eaa3208fc22293741";//"58cfc1580922ba0a1a7d4546";
-	public static String EXPERIMENTER_ID = "f3e1db7b-5f08-4cee-b715-939123fec017";//"86d7edce-5092-44c0-bed8-da4beaa3fbc6";
+	/* Bluetooth Communication Constants */
+
+    // Default UUID	list.
+    // What is the merit for a UUID such as this as opposed to something like 'NaturalNet'?
+    public static UUID APP_UUID = UUID.fromString("8113ac40-438f-11e1-b86c-0800200c9a60");
+
+    // Service name for the socket we create.
+    public static final String BTSocketServiceName = "NaturalNet";
+
+    // Status codes.
+    public final static int BT_CLIENT_CONNECTED = 10401;
+    public final static int BT_SERVER_CONNECTED = 10402;
+    public final static int BT_DATA = 10403;
+    public final static int BT_CLIENT_CONNECT_FAILED = 10404;
+    public final static int BT_CLIENT_ALREADY_CONNECTED = 10405;
+    public final static int BT_DISCONNECTED = 10406;
+    public final static int BT_SUCCESS = 10407;
+
+    // Data labels used when communicating with the local Messenger (BTServiceHandler).
+    public final static String BT_DATA_CONTENT = "bt_data"; // Data received from another device.
+    public final static String BT_DEVICE_MAC = "bt_device_mac"; // MAC address of the communicating device (us or them).
+    public final static String BT_DEVICE_NAME = "bt_device_name"; // Name of the peer device.
 }

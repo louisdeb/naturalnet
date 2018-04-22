@@ -10,7 +10,6 @@ import android.util.Log;
 import com.louis.naturalnet.data.QueueManager;
 import com.louis.naturalnet.energy.BatteryMonitor;
 import com.louis.naturalnet.utils.Constants;
-import com.louis.naturalnet.utils.Utils;
 
 import java.util.ArrayList;
 
@@ -149,7 +148,7 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver {
 
             // If we found a suitable relay device
             if (deviceToConnect != null && queueManager.getQueueLength() > 0) {
-                btManager.connectBTServer(deviceToConnect, Constants.BT_CLIENT_TIMEOUT);
+                btManager.connectToBTServer(deviceToConnect, Constants.BT_CLIENT_TIMEOUT);
 
                 devices.remove(deviceToConnect);
                 queueManager.contacts += 1;

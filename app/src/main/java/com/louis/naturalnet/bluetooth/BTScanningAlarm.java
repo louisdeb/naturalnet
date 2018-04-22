@@ -94,7 +94,7 @@ public class BTScanningAlarm extends BroadcastReceiver {
 		// Start scan.
 		Log.d(TAG, "start a scan at " + String.valueOf(System.currentTimeMillis()));
 		if (mBTController != null) {
-			mBTController.startBTScan(true, Constants.SCAN_DURATION);
+			mBTController.startBTScan(Constants.SCAN_DURATION);
 		}
 
 		// Schedule a new scan.
