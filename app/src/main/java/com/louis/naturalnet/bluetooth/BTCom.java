@@ -171,9 +171,6 @@ class BTCom {
 			BluetoothServerSocket tmp = null;
 
 			try {
-				// MY_UUID is the app's UUID string, also used by the client code.
-                // Maybe we want to make the UUID an application constant?
-
 				tmp = mBluetoothAdapter.listenUsingInsecureRfcommWithServiceRecord(Constants.BTSocketServiceName, uuid);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -308,7 +305,8 @@ class BTCom {
 
 					Log.d(TAG, "Connected as a client");
 
-                    // Do work to manage the connection (in a separate thread).
+                    // It may be that the response from the server will be enough to know it's a NaturalNet relay.
+                    // Probably not though. It will just mean it's a BT device allowing insecure rf comm.
 
 					// Start a new thread to handling data exchange.
 					connected(mClientSocket, mClientSocket.getRemoteDevice(), true);

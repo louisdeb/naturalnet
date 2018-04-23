@@ -23,7 +23,7 @@ public class BTController {
 	}
 
 	void startBTScan(long duration){
-			mBTHelper.startScan(isStart, duration);
+			mBTHelper.startScan(duration);
 	}
 
 	void startBTServer(){
