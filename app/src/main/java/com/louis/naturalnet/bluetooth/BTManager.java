@@ -61,8 +61,8 @@ public class BTManager {
         }
     }
 
-    void connectToBTServer(BluetoothDevice device, long timeout) {
-        mBTController.connectToBTServer(device, timeout);
+    void connectToBTServer(BluetoothDevice device, long timeout, BTServiceHandshakeReceiver handshakeReceiver) {
+        mBTController.connectToBTServer(device, timeout, handshakeReceiver);
     }
 
     private void alertBluetoothNotSupported(Activity activity) {

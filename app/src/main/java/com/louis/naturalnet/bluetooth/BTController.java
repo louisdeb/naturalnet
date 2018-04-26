@@ -34,8 +34,8 @@ public class BTController {
 		mBTHelper.stopServer();
 	}
 
-	void connectToBTServer(BluetoothDevice btDevice, long timeout){
-		mBTHelper.connect(btDevice, timeout);
+	void connectToBTServer(BluetoothDevice device, long timeout, BTServiceHandshakeReceiver handshakeReceiver) {
+		mBTHelper.connect(device, timeout, handshakeReceiver);
 	}
 
 	void sendToBTDevice(String mac, JSONObject data){

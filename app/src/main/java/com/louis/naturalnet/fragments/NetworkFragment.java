@@ -29,6 +29,7 @@ public class NetworkFragment extends Fragment {
     private SignalQuality cellSignalQuality;
     private SignalQuality gpsSignalQuality;
     private int numPeers;
+    private boolean bluetoothSupported;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -40,11 +41,11 @@ public class NetworkFragment extends Fragment {
             public void onClick(View titleView) {
                 expanded = !expanded;
 
-                // Toggle chevron direction
+                // Toggle chevron direction.
                 titleView.findViewById(R.id.chevron_down_icon).setVisibility(expanded ? View.GONE : View.VISIBLE);
                 titleView.findViewById(R.id.chevron_up_icon).setVisibility(expanded ? View.VISIBLE : View.GONE);
 
-                // Toggle content
+                // Toggle content.
                 view.findViewById(R.id.network_content_layout).setVisibility(expanded ? View.VISIBLE : View.GONE);
             }
         });
@@ -60,7 +61,6 @@ public class NetworkFragment extends Fragment {
         getActivity().registerReceiver(new LocationReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                // Can do some parsing of the intent here
                 handleLocationChange(intent, view);
             }
         }, locationFilter);
@@ -69,7 +69,7 @@ public class NetworkFragment extends Fragment {
         getActivity().registerReceiver(new BTDeviceListener() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                boolean bluetoothSupported = intent.getBooleanExtra("btSupported", true);
+                bluetoothSupported = intent.getBooleanExtra("btSupported", true);
                 if (!bluetoothSupported) {
                     handleBluetoothNotSupported(view);
                     return;
@@ -122,6 +122,8 @@ public class NetworkFragment extends Fragment {
 
         cellularIcon.setImageDrawable(ContextCompat.getDrawable(getActivity(), iconRes));
         cellularText.setText(textRes);
+
+        handleNetworkChange();
     }
 
     private void handleLocationChange(Intent intent, View view) {
@@ -163,6 +165,8 @@ public class NetworkFragment extends Fragment {
 
         gpsIcon.setImageDrawable(ContextCompat.getDrawable(getActivity(), iconRes));
         gpsText.setText(textRes);
+
+        handleNetworkChange();
     }
 
     private void handleBluetoothNotSupported(View view) {
@@ -174,6 +178,8 @@ public class NetworkFragment extends Fragment {
         netSignalText.setText(R.string.bt_not_supported);
 
         peersConnectionsLayout.setVisibility(View.GONE);
+
+        handleNetworkChange();
     }
 
     private void handlePeersChange(ArrayList<BluetoothDevice> peers, View view) {
@@ -192,8 +198,7 @@ public class NetworkFragment extends Fragment {
         int iconRes = R.drawable.ic_net_signal_great;
         int netText = R.string.net_status_great;
 
-        // Determine some metric for how good the peer connectivity is
-        // Doesn't necessarily mean we are connected to the wider network
+        // May want a more complex metric than simply how many peers are available?
         if (numPeers == 0) {
             iconRes = R.drawable.ic_net_signal_none;
             netText = R.string.net_status_none;
@@ -210,7 +215,11 @@ public class NetworkFragment extends Fragment {
         peersIcon.setImageDrawable(ContextCompat.getDrawable(getActivity(), iconRes));
         netSignalText.setText(netText);
         peersConnectionsText.setText(Integer.toString(numPeers));
+
+        handleNetworkChange();
     }
 
-    // TODO: Remove concept of sinks & sources from BTManager & focus on maintaining connections with all relays
+    private void handleNetworkChange() {
+        // Compute a overall quality of network and alter the main colour of the layout.
+    }
 }

@@ -20,10 +20,6 @@ public abstract class Constants {
 	
 	public static final String DEFAULT_DEVICE_NAME = "OppNet:0:0";
 	public static final int QUEUE_DIFF = 5;
-	
-	public static long BT_CLIENT_TIMEOUT = 5000;
-	public static long BT_CLIENT_TIMEOUT_SAVING = 3000;
-
 
 	/* Bluetooth Communication Constants */
 
@@ -33,6 +29,11 @@ public abstract class Constants {
 
     // Service name for the socket we create.
     public static final String BTSocketServiceName = "NaturalNet";
+
+    // Connection timeouts.
+    public static long BT_HANDSHAKE_TIMEOUT = 5000;
+    public static long BT_CLIENT_TIMEOUT = 5000;
+    public static long BT_CLIENT_TIMEOUT_SAVING = 3000;
 
     // Status codes.
     public final static int BT_CLIENT_CONNECTED = 10401;

@@ -43,7 +43,8 @@ class BTCom {
 
     private BluetoothAdapter mBluetoothAdapter;
     private Handler timeoutHandler = new Handler();
-    private final static StringBuffer sbLock = new StringBuffer();
+
+    private final static StringBuffer clientLock = new StringBuffer();
 
 	// All received messages are sent through this messenger to its parent.
 	private Messenger mMessenger = null;
@@ -113,11 +114,11 @@ class BTCom {
     }
 
     // Connect to a BT device.
-    synchronized void connect(BluetoothDevice btDevice, long timeout) {
+    synchronized void connect(BluetoothDevice btDevice, long timeout, BTServiceHandshakeReceiver handshakeReceiver) {
         // Start the thread to connect with the given device.
         // The ClientThread creates an insecure RF Comm connection to the device.
 
-        ClientThread clientThread = new ClientThread(btDevice, sbLock, Constants.APP_UUID, timeout);
+        ClientThread clientThread = new ClientThread(btDevice, clientLock, timeout, handshakeReceiver);
         clientThread.start();
     }
 
@@ -225,7 +226,6 @@ class BTCom {
 		}
 	}
 
-
 	/**
 	 * Client thread to handle issued connection command
 	 * @author fshi
@@ -235,15 +235,17 @@ class BTCom {
 	    // The thread is responsible for connecting to a single device.
 
 		private final BluetoothSocket mClientSocket;
-		private final BluetoothDevice mBTDevice;
+		private final BluetoothDevice device;
 		private long timeout;
+		private final BTServiceHandshakeReceiver handshakeReceiver;
 		private boolean clientConnected = false;
-		private StringBuffer lock;
+		private final StringBuffer lock;
 
-		ClientThread(BluetoothDevice device, StringBuffer sb, UUID uuid, long timeout) {
+		ClientThread(BluetoothDevice device, StringBuffer sb, long timeout, BTServiceHandshakeReceiver handshakeReceiver) {
+            this.device = device;
 			this.timeout = timeout;
-            mBTDevice = device;
-            this.lock=sb;
+            this.lock = sb;
+            this.handshakeReceiver = handshakeReceiver;
 
             // Use a temporary object that is later assigned to mmSocket because mmSocket is final
 			BluetoothSocket tmp = null;
@@ -251,7 +253,7 @@ class BTCom {
 			// Get a BluetoothSocket to connect with the given BluetoothDevice.
 			try {
 				// MY_UUID is the app's UUID string, also used by the server code.
-				tmp = mBTDevice.createInsecureRfcommSocketToServiceRecord(uuid);
+				tmp = this.device.createInsecureRfcommSocketToServiceRecord(Constants.APP_UUID);
 			} catch (IOException e) {
 			    e.printStackTrace();
             }
@@ -274,25 +276,28 @@ class BTCom {
 			// timestamp before connection
 			try {
 				// Connect the device through the socket. This will block until it succeeds or throws an exception.
-				// Stop the connection after 5 seconds.
+				// Stop the connection after _timeout_ seconds.
+                // (Timeout is Constants.BT_CLIENT_TIMEOUT which is 5 seconds).
 
 				boolean connExisted = false;
 				for (ConnectedThread connection : connections) {
-					if (connection.getMac().equals(mBTDevice.getAddress()))
+					if (connection.getMac().equals(device.getAddress()))
 						connExisted = true;
 				}
 
 				if (!connExisted) {
 					synchronized (lock) {
-					    // Can we can use this timeout to decide the device wasn't a NaturalNet device?
+					    // This timeout is triggered if we receive no response from the server.
 						timeoutHandler.postDelayed(new Runnable() {
 
 							@Override
 							public void run() {
 								if (!clientConnected) {
 									cancel();
-									if (mMessenger != null)
-									    announceFailure(Constants.BT_CLIENT_CONNECT_FAILED);
+									if (mMessenger != null) {
+                                        announceFailure(Constants.BT_CLIENT_CONNECT_FAILED);
+                                        handshakeReceiver.connectionFailed(device);
+                                    }
 								}
 							}
 
@@ -308,8 +313,8 @@ class BTCom {
                     // It may be that the response from the server will be enough to know it's a NaturalNet relay.
                     // Probably not though. It will just mean it's a BT device allowing insecure rf comm.
 
-					// Start a new thread to handling data exchange.
-					connected(mClientSocket, mClientSocket.getRemoteDevice(), true);
+					// Perform a handshake with the device.
+                    handshake(mClientSocket, mClientSocket.getRemoteDevice(), true, handshakeReceiver);
 				} else {
 					// Already connected.
 					if (mMessenger != null)
@@ -342,7 +347,7 @@ class BTCom {
                 msg.what = what;
 
                 Bundle b = new Bundle();
-                b.putString(Constants.BT_DEVICE_MAC, mBTDevice.getAddress());
+                b.putString(Constants.BT_DEVICE_MAC, device.getAddress());
 
                 msg.setData(b);
                 mMessenger.send(msg);
@@ -351,6 +356,91 @@ class BTCom {
             }
         }
 	}
+
+	private synchronized void handshake(BluetoothSocket socket, BluetoothDevice device, boolean asClient,
+                                        BTServiceHandshakeReceiver handshakeReceiver) {
+        // Want to send a bit of data announcing we are a NaturalNet device.
+        HandshakeThread handshakeThread = new HandshakeThread(socket, device, asClient, handshakeReceiver);
+        handshakeThread.start();
+    }
+
+    private class HandshakeThread extends Thread {
+        private final BluetoothSocket socket;
+        private final BluetoothDevice device;
+        private final boolean asClient;
+        private final BTServiceHandshakeReceiver handshakeReceiver;
+
+        private final InputStream inputStream;
+        private final OutputStream outputStream;
+
+        HandshakeThread(BluetoothSocket socket, BluetoothDevice device, boolean asClient,
+                        BTServiceHandshakeReceiver handshakeReceiver) {
+            this.socket = socket;
+            this.device = device;
+            this.asClient = asClient;
+            this.handshakeReceiver = handshakeReceiver;
+
+            InputStream tmpIn = null;
+            OutputStream tmpOut = null;
+
+            // Get the input and output streams.
+            try {
+                tmpIn = this.socket.getInputStream();
+                tmpOut = this.socket.getOutputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            inputStream = tmpIn;
+            outputStream = tmpOut;
+
+            if (asClient)
+                sendMetadata();
+        }
+
+        // Information about our device, exchanged in the handshake between two NaturalNet devices.
+        private void sendMetadata() {
+            try {
+                DataOutputStream out = new DataOutputStream(outputStream);
+                out.writeBytes("test");
+                out.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void run() {
+            Object buffer;
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
+
+            while (true) {
+                try {
+                    // Read from the InputStream.
+                    buffer = in.readLine();
+
+                    Log.d("HandshakeThread", "Received buffer in: " + buffer.toString());
+
+                    // Parse the buffer and check that we have a NaturalNet device.
+
+
+                    // TODO: Would be nice to parse the buffer and add it to the a NaturalNetDevice object which
+                    // extends BluetoothDevice, and then have all confirmed NaturalNet devices be this object.
+                    handshakeReceiver.receivedMetadata(device, buffer);
+
+                    if (!asClient)
+                        sendMetadata();
+
+                    // Set up a thread to handle the established connection.
+                    connected(socket, device, asClient);
+
+                    // End the handshake thread and move to a client thread.
+                    break;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
 	/**
 	 * Start the ConnectedThread to begin managing a Bluetooth connection
@@ -396,13 +486,14 @@ class BTCom {
 		
 		ConnectedThread(BluetoothSocket socket) {
 			mConnectedSocket = socket;
+
 			InputStream tmpIn = null;
 			OutputStream tmpOut = null;
 
 			// Get the input and output streams.
 			try {
 				tmpIn = mConnectedSocket.getInputStream();
-				tmpOut = socket.getOutputStream();
+				tmpOut = mConnectedSocket.getOutputStream();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

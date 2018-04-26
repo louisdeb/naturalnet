@@ -10,15 +10,14 @@ import android.util.Log;
 import com.louis.naturalnet.data.QueueManager;
 import com.louis.naturalnet.energy.BatteryMonitor;
 import com.louis.naturalnet.utils.Constants;
-
 import java.util.ArrayList;
 
 /*
-    This class handles discovering and saving bluetooth devices.
+    This class handles discovering and saving bluetooth discoveredDevices.
     When a scan has finished, data in ExchangeData is exchanged.
  */
 
-public class BTServiceBroadcastReceiver extends BroadcastReceiver {
+public class BTServiceBroadcastReceiver extends BroadcastReceiver implements BTServiceHandshakeReceiver {
 
     private static final String TAG = "BTBroadcastReceiver";
 
@@ -29,14 +28,19 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver {
     private long scanStopTimestamp = System.currentTimeMillis() - 100000;
 
     // Categories of BT device
-    private ArrayList<BluetoothDevice> devices = new ArrayList<>();
+    private ArrayList<BluetoothDevice> discoveredDevices = new ArrayList<>();
+    private ArrayList<BluetoothDevice> naturalNetDevices = new ArrayList<>();
 
-    private ArrayList<String> devicesFoundStringArray = new ArrayList<>();
+    private ArrayList<String> discoveredMACs = new ArrayList<>();
+    private ArrayList<String> naturalNetMACs = new ArrayList<>();
+
+    private ArrayList<String> failedMACs = new ArrayList<>();
 
     BTServiceBroadcastReceiver(BTManager _manager) {
         manager = _manager;
     }
 
+    // Receives discovered devices from BluetoothAdapter scan.
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
 
@@ -49,48 +53,94 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver {
 
             Log.d(TAG, "Got Device : " + device.getName() + ", " + deviceMac);
 
-            // Instead of checking whether the device is a relay here, let's do some check in BTCom (or at least
-            // use some custom handshake to determine it.
-            // So we may want to store a list of discovered devices and a separate list of NaturalNet devices.
-
-            if (!devicesFoundStringArray.contains(deviceMac)) {
-
-                // Add the device to our list of relays
-                devicesFoundStringArray.add(deviceMac);
-                devices.add(device);
+            if (!discoveredMACs.contains(deviceMac) && !failedMACs.contains(deviceMac)) {
+                // Add the device to our list of discovered devices.
+                discoveredMACs.add(deviceMac);
+                discoveredDevices.add(device);
             }
 
         } else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
             // Start a new scan
 
             if (System.currentTimeMillis() - scanStartTimestamp > Constants.SCAN_DURATION) {
-                devicesFoundStringArray = new ArrayList<>();
-                devices = new ArrayList<>();
+                discoveredMACs = new ArrayList<>();
+                discoveredDevices = new ArrayList<>();
                 scanStartTimestamp = System.currentTimeMillis();
 
                 Log.d(TAG, "Discovery process has been started: " + String.valueOf(System.currentTimeMillis()));
             }
         } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-            // Finish scan
+            // Finish BT scan. Now try perform a handshake with each of the devices.
 
+            // Do we want this if statement? It checks that we have waited the scan duration, but are also receiving
+            // the action ACTION_DISCOVERY_FINISHED? Probably just worth checking if we ever receive this action
+            // without having waited the whole duration.
+            if (System.currentTimeMillis() - scanStopTimestamp > Constants.SCAN_DURATION) {
+
+                // If we have data to send and we have some NaturalNet devices, we may want to prioritise this than
+                // checking for new NaturalNet devices.
+
+                // Dispatch a task to create a communication with each of the devices
+                new ExchangeHandshake(manager, this, discoveredDevices).execute();
+            }
+
+            /*
             if (System.currentTimeMillis() - scanStopTimestamp > Constants.SCAN_DURATION) {
                 new ExchangeData(manager, QueueManager.getInstance(context), BatteryMonitor.getInstance(context),
-                        devices).execute();
+                        naturalNetDevices).execute();
+
                 scanStopTimestamp = System.currentTimeMillis();
 
                 Log.d(TAG, "Discovery process has been stopped: " + String.valueOf(System.currentTimeMillis()));
 
                 // Create a broadcast to notify all BTDeviceListeners of the new device
+                // Actually here we're just notifying of all surrounding BT discoveredDevices, instead of NaturalNet devices.
                 Intent deviceBroadcastIntent = new Intent("com.louis.naturalnet.bluetooth.BTDeviceListener");
-                deviceBroadcastIntent.putExtra("devices", devices);
+                deviceBroadcastIntent.putExtra("discoveredDevices", discoveredDevices);
                 context.sendBroadcast(deviceBroadcastIntent);
             }
+            */
         }
     }
 
-    // We can't make this static because it is coupled with the device info arrays
-    // Otherwise we'd like to use this pattern:
-    // https://github.com/commonsguy/cw-android/blob/master/Rotation/RotationAsync/
+    public void connectionFailed(BluetoothDevice device) {
+        Log.d(TAG, "Connection failed to device: " + device.getAddress());
+        failedMACs.add(device.getAddress());
+        discoveredDevices.remove(device);
+        discoveredMACs.remove(device.getAddress());
+    }
+
+    @Override
+    public void receivedMetadata(BluetoothDevice device, Object buffer) {
+        naturalNetDevices.add(device);
+        naturalNetMACs.add(device.getAddress());
+    }
+
+    private static class ExchangeHandshake extends AsyncTask<Void, Void, Void> {
+        BTManager btManager;
+        BTServiceHandshakeReceiver handshakeReceiver;
+
+        ArrayList<BluetoothDevice> discoveredDevices;
+
+        ExchangeHandshake(BTManager btManager, BTServiceHandshakeReceiver handshakeReceiver,
+                          ArrayList<BluetoothDevice> discoveredDevices) {
+            this.btManager = btManager;
+            this.handshakeReceiver = handshakeReceiver;
+            this.discoveredDevices = discoveredDevices;
+        }
+
+        // For every discovered device, perform some handshake with a timeout. We want to check that the device
+        // responds in the way a NaturalNet device would. If we reach the timeout, we can assume the device
+        // was not a NaturalNet device and then add it to a list of devices that we won't communicate with again.
+        @Override
+        protected Void doInBackground(Void... voids) {
+            for (BluetoothDevice device : discoveredDevices) {
+                btManager.connectToBTServer(device, Constants.BT_HANDSHAKE_TIMEOUT, handshakeReceiver);
+            }
+            return null;
+        }
+    }
+
     private static class ExchangeData extends AsyncTask<Void, Void, Void> {
         BTManager btManager;
         QueueManager queueManager;
@@ -98,12 +148,12 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver {
 
         ArrayList<BluetoothDevice> devices;
 
-        ExchangeData(BTManager _btManager, QueueManager _queueManager, BatteryMonitor _batteryMonitor,
-                     ArrayList<BluetoothDevice> _devices) {
-            btManager = _btManager;
-            queueManager = _queueManager;
-            batteryMonitor = _batteryMonitor;
-            devices = _devices;
+        ExchangeData(BTManager btManager, QueueManager queueManager, BatteryMonitor batteryMonitor,
+                     ArrayList<BluetoothDevice> devices) {
+            this.btManager = btManager;
+            this.queueManager = queueManager;
+            this.batteryMonitor = batteryMonitor;
+            this.devices = devices;
         }
 
         @Override
@@ -127,11 +177,12 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver {
                 // The use of Utils.getQueueLen (and possibly getBatteryLevel) results in a memory leak.
                 // This exchange data may be quite specific to OppNet's purposes, so we can remove this code
                 // for now and reimplement communications later.
+
                 /*
                 int tmpPeerQueueLen = Utils.getQueueLen(device.getName());
                 int tmpEnergyLevel = Utils.getBatteryLevel(device.getName());
 
-                // This looks like our objective function
+                // This looks like our objective function.
                 double score = (queueManager.getQueueLength() - tmpPeerQueueLen) +
                         Constants.ENERGY_PENALTY_COEFF *
                                 (tmpEnergyLevel - batteryMonitor.getBatteryLevel());
@@ -146,9 +197,9 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver {
                 */
             }
 
-            // If we found a suitable relay device
+            // If we found a suitable relay device and we have data to send.
             if (deviceToConnect != null && queueManager.getQueueLength() > 0) {
-                btManager.connectToBTServer(deviceToConnect, Constants.BT_CLIENT_TIMEOUT);
+                btManager.connectToBTServer(deviceToConnect, Constants.BT_CLIENT_TIMEOUT, null);
 
                 devices.remove(deviceToConnect);
                 queueManager.contacts += 1;

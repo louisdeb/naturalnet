@@ -60,7 +60,6 @@ public class BTServiceHandler extends Handler {
             try {
                 dataPacket.put(BasicPacket.PACKET_TYPE, BasicPacket.PACKET_TYPE_DATA);
             } catch (JSONException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
 
@@ -84,7 +83,6 @@ public class BTServiceHandler extends Handler {
                             // Add this packet to our array of packets
                             dataArray.put(data);
                         } catch (JSONException e) {
-                            // TODO Auto-generated catch block
                             e.printStackTrace();
                         }
 
@@ -103,7 +101,6 @@ public class BTServiceHandler extends Handler {
             try {
                 dataPacket.put(BasicPacket.PACKET_DATA, dataArray);
             } catch (JSONException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             mBTController.sendToBTDevice(MAC, dataPacket);
@@ -122,32 +119,32 @@ public class BTServiceHandler extends Handler {
     @Override
     public void handleMessage(Message msg) {
         Bundle bundle = msg.getData();
-        String MAC = bundle.getString(BTCom.BT_DEVICE_MAC);
-        String name = bundle.getString(BTCom.BT_DEVICE_NAME);
+        String MAC = bundle.getString(Constants.BT_DEVICE_MAC);
+        String name = bundle.getString(Constants.BT_DEVICE_NAME);
 
         switch (msg.what) {
-            case BTCom.BT_CLIENT_ALREADY_CONNECTED:
-            case BTCom.BT_CLIENT_CONNECTED:
+            case Constants.BT_CLIENT_ALREADY_CONNECTED:
+            case Constants.BT_CLIENT_CONNECTED:
                 // don't continue
                 new ClientConnectionTask().execute(MAC, name);
                 break;
-            case BTCom.BT_CLIENT_CONNECT_FAILED:
-                Log.d(Constants.TAG_ACT_TEST, "Client Failed");
+            case Constants.BT_CLIENT_CONNECT_FAILED:
+                // Log.d(Constants.TAG_ACT_TEST, "Client Failed");
                 // new ExchangeData().execute();
                 break;
-            case BTCom.BT_SUCCESS:
+            case Constants.BT_SUCCESS:
                 // Triggered by receiver
                 Log.d(Constants.TAG_ACT_TEST, "Success");
                 break;
-            case BTCom.BT_DISCONNECTED:
+            case Constants.BT_DISCONNECTED:
                 Log.d(Constants.TAG_ACT_TEST, "Disconnected");
                 break;
-            case BTCom.BT_SERVER_CONNECTED:
+            case Constants.BT_SERVER_CONNECTED:
                 // Do nothing, wait for data
                 Log.d(TAG, "Server Connected");
                 QueueManager.getInstance(context).contacts += 1;
                 break;
-            case BTCom.BT_DATA:
+            case Constants.BT_DATA:
                 handlePacket(bundle, MAC);
                 break;
             default:
@@ -160,7 +157,7 @@ public class BTServiceHandler extends Handler {
         int packetType;
 
         try {
-            dataContent = new JSONObject(bundle.getString(BTCom.BT_DATA_CONTENT));
+            dataContent = new JSONObject(bundle.getString(Constants.BT_DATA_CONTENT));
             packetType = dataContent.getInt(BasicPacket.PACKET_TYPE);
 
             switch (packetType) {
@@ -198,7 +195,6 @@ public class BTServiceHandler extends Handler {
                     try {
                         ackPacket.put(BasicPacket.PACKET_TYPE, BasicPacket.PACKET_TYPE_DATA_ACK);
                     } catch (JSONException e) {
-                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
 
@@ -215,7 +211,6 @@ public class BTServiceHandler extends Handler {
                     break;
             }
         } catch (JSONException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }

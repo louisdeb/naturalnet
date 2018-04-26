@@ -14,36 +14,29 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
 
+// This class is responsible for regular BT scans.
 public class BTScanningAlarm extends BroadcastReceiver {
-	// Class constants
-	static final String TAG = "ScanningAlarm"; /** for logging */   
+
+	private static final String TAG = "ScanningAlarm";
 	private static WakeLock wakeLock;
 	private static final String WAKE_LOCK = "ScanningAlarmWakeLock";
-
 	private static PendingIntent alarmIntent;
-
 	private static long interval;
-
 	private static BTController mBTController = null;
 
-	/**
-	 * Starts the alarm, need to give it a user defined bluetooth controller (define handler e.g.)
-	 */
+	// We require a zero argument constructor to avoid an InstantiationException
+	BTScanningAlarm() {}
+
+	// Starts the alarm, need to give it a user defined bluetooth controller (define handler e.g.)
 	BTScanningAlarm(Context context, BTController btController) {
-		// init bt controller
 		mBTController = btController;
 
-		if (BluetoothAdapter.getDefaultAdapter().isEnabled()) {
+		if (BluetoothAdapter.getDefaultAdapter().isEnabled())
 			scheduleScanning(context, System.currentTimeMillis());
-		}
 	}
 
-	/**
-	 * Acquire the Wake Lock
-	 * @param context
-	 */
+	//Acquire the Wake Lock.
 	public static void getWakeLock(Context context) {
-
 		releaseWakeLock();
 
 		PowerManager mgr = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
@@ -57,10 +50,7 @@ public class BTScanningAlarm extends BroadcastReceiver {
 				wakeLock.release();
 	}
 
-	/**
-	 * Stop the scheduled alarm
-	 * @param context
-	 */
+	// Stop the scheduled alarm.
 	public static void stopScanning(Context context) {
 		AlarmManager alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
 
