@@ -1,5 +1,6 @@
 package com.louis.naturalnet.bluetooth;
 
+import android.content.Context;
 import org.json.JSONObject;
 
 import android.bluetooth.BluetoothDevice;
@@ -13,40 +14,40 @@ import android.os.Messenger;
  */
 public class BTController {
 
-	private BTCom mBTHelper;
+	private BTCom btComms;
 
-	BTController(Handler btHandler){
+	BTController(Handler btHandler, Context context){
 		// init bt utility
-		mBTHelper = BTCom.getInstance();
+		btComms = BTCom.getInstance(context);
         Messenger mMessenger = new Messenger(btHandler);
-		mBTHelper.setCallback(mMessenger);
+		btComms.setCallback(mMessenger);
 	}
 
-	void startBTScan(long duration){
-			mBTHelper.startScan(duration);
+	void startBTScan(long duration) {
+			btComms.startScan(duration);
 	}
 
-	void startBTServer(){
-		mBTHelper.startServer();
+	void startBTServer() {
+		btComms.startServer();
 	}
 
-	public void stopBTServer(){
-		mBTHelper.stopServer();
+	public void stopBTServer() {
+		btComms.stopServer();
 	}
 
-	void connectToBTServer(BluetoothDevice device, long timeout, BTServiceHandshakeReceiver handshakeReceiver) {
-		mBTHelper.connect(device, timeout, handshakeReceiver);
+	void connectToBTServer(BluetoothDevice device, long timeout) {
+		btComms.connect(device, timeout);
 	}
 
-	void sendToBTDevice(String mac, JSONObject data){
-		mBTHelper.send(mac, data);
+	void sendToBTDevice(String mac, JSONObject data) {
+		btComms.send(mac, data);
 	}
 
-	void sendToBTDevice(String mac, String data){
-		mBTHelper.send(mac, data);
+	void sendToBTDevice(String mac, String data) {
+		btComms.send(mac, data);
 	}
 
-	void stopConnection(String mac){
-		mBTHelper.stopConnection(mac);
+	void stopConnection(String mac) {
+		btComms.stopConnection(mac);
 	}	
 }

@@ -18,9 +18,9 @@ public class BTManager {
     public static final int REQUEST_BT_DISCOVERABLE = 11;
     public static int RESULT_BT_DISCOVERABLE_DURATION = 0;
 
-    public BTManager(Context _context) {
-        context = _context;
-        mBroadcastReceiver = new BTServiceBroadcastReceiver(this);
+    public BTManager(Context context) {
+        this.context = context;
+        mBroadcastReceiver = new BTServiceBroadcastReceiver(this, context);
     }
 
     public void registerBroadcastReceivers() {
@@ -52,7 +52,7 @@ public class BTManager {
         } else {
             // Start BT utils once we have an enabled BT adapter
             BTServiceHandler handler = new BTServiceHandler(mBTController, context);
-            mBTController = new BTController(handler);
+            mBTController = new BTController(handler, context);
             mBTController.startBTServer();
 
             // Recreate our BT scanning alarm
@@ -61,8 +61,8 @@ public class BTManager {
         }
     }
 
-    void connectToBTServer(BluetoothDevice device, long timeout, BTServiceHandshakeReceiver handshakeReceiver) {
-        mBTController.connectToBTServer(device, timeout, handshakeReceiver);
+    void connectToBTServer(BluetoothDevice device, long timeout) {
+        mBTController.connectToBTServer(device, timeout);
     }
 
     private void alertBluetoothNotSupported(Activity activity) {

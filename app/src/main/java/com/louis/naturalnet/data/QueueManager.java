@@ -36,7 +36,7 @@ public class QueueManager {
 		ID = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
 		
 		Log.d(TAG, "init queue");
-		updateName();
+		// updateName();
 		
 		start(context);
 	}

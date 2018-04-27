@@ -38,84 +38,6 @@ public class BTServiceHandler extends Handler {
         context = _context;
     }
 
-    // Same comment as the ExchangeData task
-    private class ClientConnectionTask extends AsyncTask<String, Void, Result> {
-
-        // Parses packets in the queue & returns a result of their data
-        protected Result doInBackground(String... strings) {
-            QueueManager queueManager = QueueManager.getInstance(context);
-
-            String MAC = strings[0];
-            String name = strings[1];
-
-            Result result = new Result();
-            result.MAC = MAC;
-            result.data = "";
-
-            String[] packet;
-
-            // Create a basic data packet
-            JSONObject dataPacket = new JSONObject();
-
-            try {
-                dataPacket.put(BasicPacket.PACKET_TYPE, BasicPacket.PACKET_TYPE_DATA);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            JSONArray dataArray = new JSONArray();
-            int numItems = Math.min(Constants.QUEUE_DIFF, queueManager.getQueueLength()); // max 5
-
-            for (int i = 0; i < numItems; i++) {
-                packet = queueManager.getFromQueue(Utils.getDeviceID(name));
-
-                if (packet != null) {
-                    if (packet[0] != null) {
-                        JSONObject data = new JSONObject();
-
-                        // Parse the packet into our own
-                        try {
-                            data.put(BasicPacket.PACKET_PATH, packet[0]);
-                            data.put(BasicPacket.PACKET_DATA, packet[1]);
-                            data.put(BasicPacket.PACKET_ID, packet[2]);
-                            data.put(BasicPacket.PACKET_DELAY, packet[3]);
-
-                            // Add this packet to our array of packets
-                            dataArray.put(data);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-                        // Add the packet's data to our result
-                        result.data = result.data + packet[1];
-                        result.length++;
-                    } else {
-                        mBTController.stopConnection(MAC);
-                    }
-                } else {
-                    mBTController.stopConnection(MAC);
-                }
-            }
-
-            // Send (to device we received the data from?) the array of data parsed from packets
-            try {
-                dataPacket.put(BasicPacket.PACKET_DATA, dataArray);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            mBTController.sendToBTDevice(MAC, dataPacket);
-
-            return result;
-        }
-
-        // Do we want this?
-        @Override
-        protected void onPostExecute(Result re) {
-            if (re.length > 0)
-                QueueManager.getInstance(context).updateName();
-        }
-    }
-
     @Override
     public void handleMessage(Message msg) {
         Bundle bundle = msg.getData();
@@ -212,6 +134,84 @@ public class BTServiceHandler extends Handler {
             }
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+    }
+
+    // Same comment as the ExchangeData task
+    private class ClientConnectionTask extends AsyncTask<String, Void, Result> {
+
+        // Parses packets in the queue & returns a result of their data
+        protected Result doInBackground(String... strings) {
+            QueueManager queueManager = QueueManager.getInstance(context);
+
+            String MAC = strings[0];
+            String name = strings[1];
+
+            Result result = new Result();
+            result.MAC = MAC;
+            result.data = "";
+
+            String[] packet;
+
+            // Create a basic data packet
+            JSONObject dataPacket = new JSONObject();
+
+            try {
+                dataPacket.put(BasicPacket.PACKET_TYPE, BasicPacket.PACKET_TYPE_DATA);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            JSONArray dataArray = new JSONArray();
+            int numItems = Math.min(Constants.QUEUE_DIFF, queueManager.getQueueLength()); // max 5
+
+            for (int i = 0; i < numItems; i++) {
+                packet = queueManager.getFromQueue(Utils.getDeviceID(name));
+
+                if (packet != null) {
+                    if (packet[0] != null) {
+                        JSONObject data = new JSONObject();
+
+                        // Parse the packet into our own
+                        try {
+                            data.put(BasicPacket.PACKET_PATH, packet[0]);
+                            data.put(BasicPacket.PACKET_DATA, packet[1]);
+                            data.put(BasicPacket.PACKET_ID, packet[2]);
+                            data.put(BasicPacket.PACKET_DELAY, packet[3]);
+
+                            // Add this packet to our array of packets
+                            dataArray.put(data);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                        // Add the packet's data to our result
+                        result.data = result.data + packet[1];
+                        result.length++;
+                    } else {
+                        mBTController.stopConnection(MAC);
+                    }
+                } else {
+                    mBTController.stopConnection(MAC);
+                }
+            }
+
+            // Send (to device we received the data from?) the array of data parsed from packets
+            try {
+                dataPacket.put(BasicPacket.PACKET_DATA, dataArray);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            mBTController.sendToBTDevice(MAC, dataPacket);
+
+            return result;
+        }
+
+        // Do we want this?
+        @Override
+        protected void onPostExecute(Result re) {
+            if (re.length > 0)
+                QueueManager.getInstance(context).updateName();
         }
     }
 }

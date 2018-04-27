@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.util.Log;
 import com.louis.naturalnet.data.QueueManager;
@@ -14,10 +15,11 @@ import java.util.ArrayList;
 
 /*
     This class handles discovering and saving bluetooth discoveredDevices.
-    When a scan has finished, data in ExchangeData is exchanged.
+    When a scan has finished, we perform handshakes with each discovered device to see if it is a NaturalNet device.
+    If we find a NaturalNet device we get the metadata in the handshake.
  */
 
-public class BTServiceBroadcastReceiver extends BroadcastReceiver implements BTServiceHandshakeReceiver {
+public class BTServiceBroadcastReceiver extends BroadcastReceiver {
 
     private static final String TAG = "BTBroadcastReceiver";
 
@@ -36,8 +38,16 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver implements BTS
 
     private ArrayList<String> failedMACs = new ArrayList<>();
 
-    BTServiceBroadcastReceiver(BTManager _manager) {
-        manager = _manager;
+    BTServiceBroadcastReceiver(BTManager manager, Context context) {
+        this.manager = manager;
+
+        IntentFilter handshakeFilter = new IntentFilter("com.louis.naturalnet.bluetooth.HandshakeReceiver");
+        context.registerReceiver(new HandshakeReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                handleHandshakeResponse(intent);
+            }
+        }, handshakeFilter);
     }
 
     // Receives discovered devices from BluetoothAdapter scan.
@@ -51,9 +61,9 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver implements BTS
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
             String deviceMac = device.getAddress();
 
-            Log.d(TAG, "Got Device : " + device.getName() + ", " + deviceMac);
+            if (!discoveredMACs.contains(deviceMac) && !naturalNetMACs.contains(deviceMac) && !failedMACs.contains(deviceMac)) {
+                Log.d(TAG, "Got Device : " + device.getName() + ", " + deviceMac);
 
-            if (!discoveredMACs.contains(deviceMac) && !failedMACs.contains(deviceMac)) {
                 // Add the device to our list of discovered devices.
                 discoveredMACs.add(deviceMac);
                 discoveredDevices.add(device);
@@ -81,7 +91,7 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver implements BTS
                 // checking for new NaturalNet devices.
 
                 // Dispatch a task to create a communication with each of the devices
-                new ExchangeHandshake(manager, this, discoveredDevices).execute();
+                new ExchangeHandshake(manager, discoveredDevices).execute();
             }
 
             /*
@@ -103,29 +113,38 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver implements BTS
         }
     }
 
-    public void connectionFailed(BluetoothDevice device) {
+    private void handleHandshakeResponse(Intent intent) {
+        boolean connected = intent.getBooleanExtra("connected", false);
+        if (connected) {
+            BluetoothDevice device = intent.getParcelableExtra("device");
+            Object buffer = intent.getParcelableExtra("buffer");
+            handshakeReceivedMetadata(device, buffer);
+        } else {
+            BluetoothDevice device = intent.getParcelableExtra("device");
+            Log.d(TAG, "Received handshake intent response for device: " + device.getAddress());
+            handshakeFailed(device);
+        }
+    }
+
+    private void handshakeFailed(BluetoothDevice device) {
         Log.d(TAG, "Connection failed to device: " + device.getAddress());
         failedMACs.add(device.getAddress());
         discoveredDevices.remove(device);
         discoveredMACs.remove(device.getAddress());
     }
 
-    @Override
-    public void receivedMetadata(BluetoothDevice device, Object buffer) {
+    private void handshakeReceivedMetadata(BluetoothDevice device, Object buffer) {
         naturalNetDevices.add(device);
         naturalNetMACs.add(device.getAddress());
     }
 
     private static class ExchangeHandshake extends AsyncTask<Void, Void, Void> {
         BTManager btManager;
-        BTServiceHandshakeReceiver handshakeReceiver;
 
         ArrayList<BluetoothDevice> discoveredDevices;
 
-        ExchangeHandshake(BTManager btManager, BTServiceHandshakeReceiver handshakeReceiver,
-                          ArrayList<BluetoothDevice> discoveredDevices) {
+        ExchangeHandshake(BTManager btManager, ArrayList<BluetoothDevice> discoveredDevices) {
             this.btManager = btManager;
-            this.handshakeReceiver = handshakeReceiver;
             this.discoveredDevices = discoveredDevices;
         }
 
@@ -135,7 +154,7 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver implements BTS
         @Override
         protected Void doInBackground(Void... voids) {
             for (BluetoothDevice device : discoveredDevices) {
-                btManager.connectToBTServer(device, Constants.BT_HANDSHAKE_TIMEOUT, handshakeReceiver);
+                btManager.connectToBTServer(device, Constants.BT_HANDSHAKE_TIMEOUT);
             }
             return null;
         }
@@ -199,7 +218,7 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver implements BTS
 
             // If we found a suitable relay device and we have data to send.
             if (deviceToConnect != null && queueManager.getQueueLength() > 0) {
-                btManager.connectToBTServer(deviceToConnect, Constants.BT_CLIENT_TIMEOUT, null);
+                btManager.connectToBTServer(deviceToConnect, Constants.BT_CLIENT_TIMEOUT);
 
                 devices.remove(deviceToConnect);
                 queueManager.contacts += 1;
