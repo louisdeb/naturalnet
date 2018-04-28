@@ -51,8 +51,9 @@ public class BTManager {
             activity.startActivityForResult(enableBtIntent, REQUEST_BT_ENABLE);
         } else {
             // Start BT utils once we have an enabled BT adapter
-            BTServiceHandler handler = new BTServiceHandler(mBTController, context);
+            BTServiceHandler handler = new BTServiceHandler(context);
             mBTController = new BTController(handler, context);
+            handler.setBTController(mBTController);
             mBTController.startBTServer();
 
             // Recreate our BT scanning alarm

@@ -22,7 +22,7 @@ public class BTServiceHandler extends Handler {
 
     private static final String TAG = "BTServiceHandler";
 
-    private BTController mBTController;
+    private BTController btController;
     private Context context;
 
     // Wrapper
@@ -33,9 +33,12 @@ public class BTServiceHandler extends Handler {
         String data;
     }
 
-    BTServiceHandler(BTController controller, Context _context) {
-        mBTController = controller;
-        context = _context;
+    BTServiceHandler(Context context) {
+        this.context = context;
+    }
+
+    void setBTController(BTController btController) {
+        this.btController = btController;
     }
 
     @Override
@@ -120,13 +123,13 @@ public class BTServiceHandler extends Handler {
                         e.printStackTrace();
                     }
 
-                    mBTController.sendToBTDevice(MAC, ackPacket);
+                    btController.sendToBTDevice(MAC, ackPacket);
                     Log.d(TAG, "Sent ACK to " + MAC);
                     break;
                 case BasicPacket.PACKET_TYPE_DATA_ACK:
                     // Handle an ACK packet
                     Log.d(TAG, "Receive ACK");
-                    mBTController.stopConnection(MAC);
+                    btController.stopConnection(MAC);
                     QueueManager.getInstance(context).packetsSent++;
                     break;
                 default:
@@ -189,10 +192,10 @@ public class BTServiceHandler extends Handler {
                         result.data = result.data + packet[1];
                         result.length++;
                     } else {
-                        mBTController.stopConnection(MAC);
+                        btController.stopConnection(MAC);
                     }
                 } else {
-                    mBTController.stopConnection(MAC);
+                    btController.stopConnection(MAC);
                 }
             }
 
@@ -202,7 +205,7 @@ public class BTServiceHandler extends Handler {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            mBTController.sendToBTDevice(MAC, dataPacket);
+            btController.sendToBTDevice(MAC, dataPacket);
 
             return result;
         }

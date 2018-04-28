@@ -121,19 +121,25 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver {
             handshakeReceivedMetadata(device, buffer);
         } else {
             BluetoothDevice device = intent.getParcelableExtra("device");
-            Log.d(TAG, "Received handshake intent response for device: " + device.getAddress());
             handshakeFailed(device);
         }
     }
 
     private void handshakeFailed(BluetoothDevice device) {
         Log.d(TAG, "Connection failed to device: " + device.getAddress());
+
+        // This is for testing, in course our net devices have a failed connection we don't have to rebuild to
+        // retry a connection.
+        if (device.getName() != null && device.getName().toLowerCase().contains("net"))
+            return;
+
         failedMACs.add(device.getAddress());
         discoveredDevices.remove(device);
         discoveredMACs.remove(device.getAddress());
     }
 
     private void handshakeReceivedMetadata(BluetoothDevice device, Object buffer) {
+        Log.d(TAG, "Got Metadata for device: " + device.getAddress());
         naturalNetDevices.add(device);
         naturalNetMACs.add(device.getAddress());
     }
