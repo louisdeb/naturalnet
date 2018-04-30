@@ -11,6 +11,7 @@ import com.louis.naturalnet.data.QueueManager;
 import com.louis.naturalnet.fragments.NetworkFragment;
 import com.louis.naturalnet.fragments.WarningFragment;
 import com.louis.naturalnet.signal.LocationService;
+import com.louis.naturalnet.device.DeviceInformation;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -44,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
         // May choose to have some warning if we can't access the Google API
         // boolean googleApiAvailable = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS;
         // Log.d(TAG, "Google Api Availability: " + googleApiAvailable);
+
+        DeviceInformation.listenToSignals(this);
 
         startLocationTracking();
 

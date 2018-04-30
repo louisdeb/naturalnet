@@ -12,7 +12,7 @@ import java.util.UUID;
 import android.content.Context;
 import android.content.Intent;
 import com.louis.naturalnet.utils.Constants;
-import org.json.JSONException;
+import com.louis.naturalnet.device.DeviceInformation;
 import org.json.JSONObject;
 
 import android.bluetooth.BluetoothAdapter;
@@ -234,14 +234,8 @@ class BTCom {
         try {
             outputStream = socket.getOutputStream();
             DataOutputStream out = new DataOutputStream(outputStream);
-            JSONObject metadata = new JSONObject();
-            try {
-                metadata.put("battery", 0.82);
-                metadata.put("location", "test location");
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            out.writeBytes(metadata.toString() + "\n");
+            Log.d(TAG, "Sending handshake: " + DeviceInformation.getHandshake().toString());
+            out.writeBytes(DeviceInformation.getHandshake().toString() + "\n");
             out.flush();
 
             Log.d(TAG, "Sent handshake");

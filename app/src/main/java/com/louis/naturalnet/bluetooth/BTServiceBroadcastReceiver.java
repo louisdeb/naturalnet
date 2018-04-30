@@ -126,8 +126,6 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver {
     }
 
     private void handshakeFailed(BluetoothDevice device) {
-        Log.d(TAG, "Connection failed to device: " + device.getAddress());
-
         // This is for testing, in course our net devices have a failed connection we don't have to rebuild to
         // retry a connection.
         if (device.getName() != null && device.getName().toLowerCase().contains("net"))
@@ -139,7 +137,6 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver {
     }
 
     private void handshakeReceivedMetadata(BluetoothDevice device, Object buffer) {
-        Log.d(TAG, "Got Metadata for device: " + device.getAddress());
         naturalNetDevices.add(device);
         naturalNetMACs.add(device.getAddress());
     }
