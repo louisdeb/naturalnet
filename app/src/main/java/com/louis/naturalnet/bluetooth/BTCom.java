@@ -12,6 +12,7 @@ import java.util.UUID;
 import android.content.Context;
 import android.content.Intent;
 import com.louis.naturalnet.utils.Constants;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.bluetooth.BluetoothAdapter;
@@ -233,7 +234,14 @@ class BTCom {
         try {
             outputStream = socket.getOutputStream();
             DataOutputStream out = new DataOutputStream(outputStream);
-            out.writeBytes("test");
+            JSONObject metadata = new JSONObject();
+            try {
+                metadata.put("battery", 0.82);
+                metadata.put("location", "test location");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            out.writeBytes(metadata.toString() + "\n");
             out.flush();
 
             Log.d(TAG, "Sent handshake");
@@ -253,7 +261,10 @@ class BTCom {
                     // extends BluetoothDevice, and then have all confirmed NaturalNet devices be this object.
 
                     // Try to get the handshake information.
-                    // Log.d(TAG, "Server received handshake message: " + buffer.toString());
+                    if (buffer != null)
+                        Log.d(TAG, "Server received handshake message: " + buffer.toString());
+                    else
+                        Log.d(TAG, "Buffer was null");
 
                     // TODO: Broadcast the metadata to a HandshakeReceiver.
                     // connectionIntent.putExtra(metadata...)
@@ -483,6 +494,8 @@ class BTCom {
 				try {
 					// Read from the InputStream.
 					buffer = in.readLine();
+
+					Log.d("ConnectedThread", "Got buffer: " + buffer.toString());
 
 					// Send the obtained bytes to the UI activity.
 					if (mMessenger != null) {
