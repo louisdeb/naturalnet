@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import android.content.Context;
 import android.content.Intent;
+import com.louis.naturalnet.device.NaturalNetDevice;
 import com.louis.naturalnet.utils.Constants;
 import com.louis.naturalnet.device.DeviceInformation;
 import org.json.JSONObject;
@@ -251,18 +252,14 @@ class BTCom {
                     BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
                     Object buffer = in.readLine();
 
-                    // TODO: Would be nice to parse the buffer and add it to the a NaturalNetDevice object which
-                    // extends BluetoothDevice, and then have all confirmed NaturalNet devices be this object.
+                    JSONObject metadata = new JSONObject(buffer.toString());
+                    if (!(boolean) metadata.get("handshake")) {
+                        // We didn't get a handshake and might want to cancel communication with this device.
+                    }
 
-                    // Try to get the handshake information.
-                    if (buffer != null)
-                        Log.d(TAG, "Server received handshake message: " + buffer.toString());
-                    else
-                        Log.d(TAG, "Buffer was null");
-
-                    // TODO: Broadcast the metadata to a HandshakeReceiver.
-                    // connectionIntent.putExtra(metadata...)
-                } catch (IOException e) {
+                    Log.d(TAG, "Server received handshake message: " + metadata.toString());
+                    connectionIntent.putExtra("metadata", metadata.toString());
+                } catch (Exception e) {
                     Log.d(TAG, "Failed to read handshake input stream");
                     e.printStackTrace();
                 }
@@ -490,6 +487,10 @@ class BTCom {
 					buffer = in.readLine();
 
 					Log.d("ConnectedThread", "Got buffer: " + buffer.toString());
+					JSONObject metadata = new JSONObject(buffer.toString());
+					if ((boolean) metadata.get("handshake")) {
+					    // We have received a handshake from the server.
+                    }
 
 					// Send the obtained bytes to the UI activity.
 					if (mMessenger != null) {
@@ -508,7 +509,7 @@ class BTCom {
 							e.printStackTrace();
 						}
 					}
-				} catch (IOException e) {
+				} catch (Exception e) {
 					e.printStackTrace();
 
 					// Send message to update UI.

@@ -48,13 +48,13 @@ public class DeviceInformation {
         JSONObject metadata = new JSONObject();
 
         try {
+            metadata.put("handshake", true);
             metadata.put("signalQuality", signalQuality);
+            metadata.put("battery", BatteryMonitor.getInstance(activity).getBatteryLevel());
+            metadata.put("queueLength", QueueManager.getInstance(activity).getQueueLength());
 
             // Adds the gps quality but not actually location information.
             metadata.put("gpsQuality", gpsQuality);
-
-            metadata.put("battery", BatteryMonitor.getInstance(activity).getBatteryLevel());
-            metadata.put("queueLength", QueueManager.getInstance(activity).getQueueLength());
         } catch (JSONException e) {
             Log.d(TAG, "Failed to build handshake JSON object");
             e.printStackTrace();

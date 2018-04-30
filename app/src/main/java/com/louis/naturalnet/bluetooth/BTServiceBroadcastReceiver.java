@@ -9,8 +9,12 @@ import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.util.Log;
 import com.louis.naturalnet.data.QueueManager;
+import com.louis.naturalnet.device.NaturalNetDevice;
 import com.louis.naturalnet.energy.BatteryMonitor;
 import com.louis.naturalnet.utils.Constants;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 
 /*
@@ -31,7 +35,7 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver {
 
     // Categories of BT device
     private ArrayList<BluetoothDevice> discoveredDevices = new ArrayList<>();
-    private ArrayList<BluetoothDevice> naturalNetDevices = new ArrayList<>();
+    private ArrayList<NaturalNetDevice> naturalNetDevices = new ArrayList<>();
 
     private ArrayList<String> discoveredMACs = new ArrayList<>();
     private ArrayList<String> naturalNetMACs = new ArrayList<>();
@@ -116,9 +120,15 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver {
     private void handleHandshakeResponse(Intent intent) {
         boolean connected = intent.getBooleanExtra("connected", false);
         if (connected) {
-            BluetoothDevice device = intent.getParcelableExtra("device");
-            Object buffer = intent.getParcelableExtra("buffer");
-            handshakeReceivedMetadata(device, buffer);
+            try {
+                BluetoothDevice device = intent.getParcelableExtra("device");
+                String metadataString = intent.getParcelableExtra("metadata");
+                JSONObject metadata = new JSONObject(metadataString);
+                NaturalNetDevice netDevice = new NaturalNetDevice(device, metadata);
+                handshakeReceivedMetadata(netDevice);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         } else {
             BluetoothDevice device = intent.getParcelableExtra("device");
             handshakeFailed(device);
@@ -136,7 +146,7 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver {
         discoveredMACs.remove(device.getAddress());
     }
 
-    private void handshakeReceivedMetadata(BluetoothDevice device, Object buffer) {
+    private void handshakeReceivedMetadata(NaturalNetDevice device) {
         naturalNetDevices.add(device);
         naturalNetMACs.add(device.getAddress());
     }
