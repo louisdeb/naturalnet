@@ -209,6 +209,7 @@ class BTCom {
 				}
 			}
 
+			// If our server broke down and we broke from the while loop.
 			try {
 				this.serverSocket.close();
 			} catch (IOException e) {
@@ -225,52 +226,6 @@ class BTCom {
 			}
 		}
 	}
-
-    private synchronized void sendHandshake(BluetoothSocket socket, BluetoothDevice device, boolean asClient) {
-        // Want to send a bit of data announcing we are a NaturalNet device.
-        OutputStream outputStream;
-
-        // Get the input and output streams.
-        try {
-            outputStream = socket.getOutputStream();
-            DataOutputStream out = new DataOutputStream(outputStream);
-            Log.d(TAG, "Sending handshake: " + DeviceInformation.getHandshake().toString());
-            out.writeBytes(DeviceInformation.getHandshake().toString() + "\n");
-            out.flush();
-
-            Log.d(TAG, "Sent handshake");
-
-            // Tell the BTServiceBroadcastReceiver that we connected to the device.
-            Intent connectionIntent = new Intent("com.louis.naturalnet.bluetooth.HandshakeReceiver");
-            connectionIntent.putExtra("connected", true);
-            connectionIntent.putExtra("device", device);
-
-            if (!asClient) {
-                try {
-                    InputStream inputStream = socket.getInputStream();
-                    BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
-                    Object buffer = in.readLine();
-
-                    JSONObject metadata = new JSONObject(buffer.toString());
-                    if (!(boolean) metadata.get("handshake")) {
-                        // We didn't get a handshake and might want to cancel communication with this device.
-                    }
-
-                    Log.d(TAG, "Server received handshake message: " + metadata.toString());
-                    connectionIntent.putExtra("metadata", metadata.toString());
-                } catch (Exception e) {
-                    Log.d(TAG, "Failed to read handshake input stream");
-                    e.printStackTrace();
-                }
-            }
-
-            context.sendBroadcast(connectionIntent);
-
-            connected(socket, device, asClient);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
 	/**
 	 * Client thread to handle issued connection command
@@ -311,13 +266,13 @@ class BTCom {
         // then we will stop discovering at every device found.
         // So we would want to wait till the scan is completed, and then attempt a communication with each of those
         // devices.
+        // Note 2: I think we do this in BTServiceBroadcastReceiver.
 
 		public void run() {
 			// Cancel discovery because it will slow down the connection.
 			if (mBluetoothAdapter.isDiscovering())
 				mBluetoothAdapter.cancelDiscovery();
 
-			// timestamp before connection
 			try {
 				// Connect the device through the serverSocket. This will block until it succeeds or throws an exception.
 				// Stop the connection after _timeout_ seconds.
@@ -360,9 +315,6 @@ class BTCom {
 					clientConnected = true;
 
 					Log.d(TAG, "Connected as a client to device: " + device.getAddress());
-
-                    // It may be that the response from the server will be enough to know it's a NaturalNet relay.
-                    // Probably not though. It will just mean it's a BT device allowing insecure rf comm.
 
 					// Perform a handshake with the device.
                     sendHandshake(mClientSocket, mClientSocket.getRemoteDevice(), true);
@@ -409,6 +361,54 @@ class BTCom {
         }
 	}
 
+    private synchronized void sendHandshake(BluetoothSocket socket, BluetoothDevice device, boolean asClient) {
+        // Want to send a bit of data announcing we are a NaturalNet device.
+        OutputStream outputStream;
+
+        // Get the input and output streams.
+        try {
+            Log.d(TAG, "Sending handshake: " + DeviceInformation.getHandshake().toString());
+
+            outputStream = socket.getOutputStream();
+            DataOutputStream out = new DataOutputStream(outputStream);
+            out.writeBytes(DeviceInformation.getHandshake().toString() + "\n");
+            out.flush();
+
+            if (!asClient) {
+                try {
+                    InputStream inputStream = socket.getInputStream();
+                    BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
+                    Object buffer = in.readLine();
+
+                    JSONObject metadata = new JSONObject(buffer.toString());
+                    if (!(boolean) metadata.get("handshake")) {
+                        // We didn't get a handshake and might want to cancel communication with this device.
+                        // Should test to see if we get this case. Will probably occur if a device offers insecure
+                        // rf comm connection but isn't a NaturalNet device.
+                        Log.d(TAG, "Received non-handshake message from client: " + metadata.toString());
+                    }
+
+                    Log.d(TAG, "Received handshake message from client: " + metadata.toString());
+
+                    Intent connectionIntent = new Intent("com.louis.naturalnet.bluetooth.HandshakeReceiver");
+                    connectionIntent.putExtra("connected", true);
+                    connectionIntent.putExtra("device", device);
+                    connectionIntent.putExtra("metadata", metadata.toString());
+                    context.sendBroadcast(connectionIntent);
+                } catch (Exception e) {
+                    // This might just be a delay in the client sending the handshake. It might also be a breaking
+                    // case for our connection with the device and would require a failure broadcast.
+                    Log.d(TAG, "Failed to read handshake input stream");
+                    e.printStackTrace();
+                }
+            }
+
+            connected(socket, device, asClient);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 	/**
 	 * Start the ConnectedThread to begin managing a Bluetooth connection
 	 * @param socket  The BluetoothSocket on which the connection was made
@@ -420,6 +420,8 @@ class BTCom {
 	    // Start the connection thread.
 		ConnectedThread newConn = new ConnectedThread(socket);
 		newConn.start();
+
+		// TODO: Review what the messenger provides us with and whether we want it alongside broadcasting.
 
 		// Add this connection to our list of connections.
 		connections.add(newConn);
@@ -471,8 +473,12 @@ class BTCom {
 			mmOutStream = tmpOut;
 		}
 
-		String getMac(){
-			return mConnectedSocket.getRemoteDevice().getAddress();
+		String getMac() {
+		    return getDevice().getAddress();
+        }
+
+		BluetoothDevice getDevice(){
+			return mConnectedSocket.getRemoteDevice();
 		}
 
 		public void run() {
@@ -489,6 +495,14 @@ class BTCom {
 					JSONObject metadata = new JSONObject(buffer.toString());
 					if ((boolean) metadata.get("handshake")) {
 					    // We have received a handshake from the server.
+                        // Because sendHandshake sends this intent before receiving a message from the server,
+                        // this will be a duplicate broadcast until that is fixed.
+
+                        Intent handshakeIntent = new Intent("com.louis.naturalnet.bluetooth.HandshakeReceiver");
+                        handshakeIntent.putExtra("connected", true);
+                        handshakeIntent.putExtra("device", getDevice());
+                        handshakeIntent.putExtra("metadata", metadata.toString());
+                        context.sendBroadcast(handshakeIntent);
                     }
 
 					// Send the obtained bytes to the UI activity.

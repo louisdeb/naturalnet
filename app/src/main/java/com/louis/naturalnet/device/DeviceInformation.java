@@ -49,7 +49,7 @@ public class DeviceInformation {
 
         try {
             metadata.put("handshake", true);
-            metadata.put("signalQuality", signalQuality);
+            metadata.put("signalQuality", signalQuality.getVal());
             metadata.put("battery", BatteryMonitor.getInstance(activity).getBatteryLevel());
             metadata.put("queueLength", QueueManager.getInstance(activity).getQueueLength());
 
@@ -67,7 +67,8 @@ public class DeviceInformation {
 
     static SignalQuality getSignalQuality(JSONObject metadata) {
         try {
-            return (SignalQuality) metadata.get("signalQuality");
+            int val = (int) metadata.get("signalQuality");
+            return SignalQuality.values()[val];
         } catch (JSONException e) {
             return SignalQuality.NONE_OR_NOT_KNOWN;
         }
@@ -75,7 +76,8 @@ public class DeviceInformation {
 
     static SignalQuality getGpsQuality(JSONObject metadata) {
         try {
-            return (SignalQuality) metadata.get("gpsQuality");
+            int val = (int) metadata.get("gpsQuality");
+            return SignalQuality.values()[val];
         } catch (JSONException e) {
             return SignalQuality.NONE_OR_NOT_KNOWN;
         }

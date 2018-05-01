@@ -80,7 +80,7 @@ public class QueueManager {
         // qItem.data = String.valueOf(TemperatureSensorListener.getInstance(mContext).getSensorValue());
 		qItem.timestamp = System.currentTimeMillis();
 		queue.add(qItem);
-		updateName();
+//		updateName();
 	}
 
 	public void appendToQueue(String packetId, String path, String data, String delay) {

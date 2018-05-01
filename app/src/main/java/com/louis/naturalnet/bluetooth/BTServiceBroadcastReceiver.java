@@ -122,7 +122,7 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver {
         if (connected) {
             try {
                 BluetoothDevice device = intent.getParcelableExtra("device");
-                String metadataString = intent.getParcelableExtra("metadata");
+                String metadataString = intent.getStringExtra("metadata");
                 JSONObject metadata = new JSONObject(metadataString);
                 NaturalNetDevice netDevice = new NaturalNetDevice(device, metadata);
                 handshakeReceivedMetadata(netDevice);
