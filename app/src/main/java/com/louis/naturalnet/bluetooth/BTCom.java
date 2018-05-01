@@ -11,7 +11,6 @@ import java.util.UUID;
 
 import android.content.Context;
 import android.content.Intent;
-import com.louis.naturalnet.device.NaturalNetDevice;
 import com.louis.naturalnet.utils.Constants;
 import com.louis.naturalnet.device.DeviceInformation;
 import org.json.JSONObject;

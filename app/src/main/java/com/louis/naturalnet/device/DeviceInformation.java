@@ -63,4 +63,38 @@ public class DeviceInformation {
         return metadata;
     }
 
+    // Handshake parsing functions
+
+    static SignalQuality getSignalQuality(JSONObject metadata) {
+        try {
+            return (SignalQuality) metadata.get("signalQuality");
+        } catch (JSONException e) {
+            return SignalQuality.NONE_OR_NOT_KNOWN;
+        }
+    }
+
+    static SignalQuality getGpsQuality(JSONObject metadata) {
+        try {
+            return (SignalQuality) metadata.get("gpsQuality");
+        } catch (JSONException e) {
+            return SignalQuality.NONE_OR_NOT_KNOWN;
+        }
+    }
+
+
+    static int getBatteryLevel(JSONObject metadata) {
+        try {
+            return (int) metadata.get("battery");
+        } catch (JSONException e) {
+            return -1;
+        }
+    }
+
+    static int getQueueLength(JSONObject metadata) {
+        try {
+            return (int) metadata.get("queueLength");
+        } catch (JSONException e) {
+            return -1;
+        }
+    }
 }
