@@ -97,9 +97,8 @@ public class SignalUtils {
         if (!hasResult(intent))
             return SignalQuality.NONE_OR_NOT_KNOWN;
 
-        LocationResult locationResult = extractResult(intent);
-        Location location = locationResult.getLastLocation();
-        float accuracy = location.getAccuracy();
+        Location location = getLocation(intent);
+        float accuracy = (location == null) ? 0 : location.getAccuracy();
 
         SignalQuality quality;
 
@@ -110,6 +109,11 @@ public class SignalUtils {
         else quality = SignalQuality.NONE_OR_NOT_KNOWN;
 
         return quality;
+    }
+
+    public static Location getLocation(Intent intent) {
+        LocationResult locationResult = extractResult(intent);
+        return (locationResult == null) ? null : locationResult.getLastLocation();
     }
 
 }

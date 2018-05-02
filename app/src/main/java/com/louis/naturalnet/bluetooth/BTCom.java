@@ -160,7 +160,6 @@ class BTCom {
 		return connections.size();
 	}
 
-
 	/**
 	 * BT Server thread
 	 * @author fshi

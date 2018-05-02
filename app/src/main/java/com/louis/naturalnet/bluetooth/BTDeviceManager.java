@@ -125,6 +125,7 @@ public class BTDeviceManager extends BroadcastReceiver {
                 String metadataString = intent.getStringExtra("metadata");
                 JSONObject metadata = new JSONObject(metadataString);
                 NaturalNetDevice netDevice = new NaturalNetDevice(device, metadata);
+                Log.d(TAG, "netdevice has location " + netDevice.getLocation());
                 handshakeReceivedMetadata(netDevice);
             } catch (JSONException e) {
                 e.printStackTrace();

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.location.Location;
 import android.telephony.SignalStrength;
 import android.util.Log;
 import com.louis.naturalnet.data.QueueManager;
@@ -20,6 +21,7 @@ public class DeviceInformation {
 
     private static SignalQuality signalQuality;
     private static SignalQuality gpsQuality;
+    private static Location location;
 
     // Keep track of
     // - cellular signal
@@ -40,6 +42,7 @@ public class DeviceInformation {
             @Override
             public void onReceive(Context context, Intent intent) {
                 gpsQuality = SignalUtils.getGpsQuality(intent);
+                location = SignalUtils.getLocation(intent);
                 Log.d(TAG, intent.toString());
             }
         }, locationFilter);
@@ -53,9 +56,7 @@ public class DeviceInformation {
             metadata.put("signalQuality", signalQuality.getVal());
             metadata.put("battery", getBatteryLevel());
             metadata.put("queueLength", getQueueLength());
-
-            // Adds the gps quality but not actually location information.
-            metadata.put("gpsQuality", gpsQuality);
+            metadata.put("location", location);
         } catch (JSONException e) {
             Log.d(TAG, "Failed to build handshake JSON object");
             e.printStackTrace();
@@ -82,15 +83,6 @@ public class DeviceInformation {
         }
     }
 
-    static SignalQuality parseGpsQuality(JSONObject metadata) {
-        try {
-            int val = (int) metadata.get("gpsQuality");
-            return SignalQuality.values()[val];
-        } catch (JSONException e) {
-            return SignalQuality.NONE_OR_NOT_KNOWN;
-        }
-    }
-
     static int parseBatteryLevel(JSONObject metadata) {
         try {
             return (int) metadata.get("battery");
@@ -104,6 +96,16 @@ public class DeviceInformation {
             return (int) metadata.get("queueLength");
         } catch (JSONException e) {
             return -1;
+        }
+    }
+
+    static Location parseLocation(JSONObject metadata) {
+        try {
+            JSONObject locationJSON = new JSONObject((String) metadata.get("location"));
+            // We have to manually parse this JSON into a Location object.
+            return null;
+        } catch (JSONException e) {
+            return null;
         }
     }
 }
