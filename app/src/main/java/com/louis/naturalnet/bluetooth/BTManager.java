@@ -12,7 +12,7 @@ public class BTManager {
     private Context context;
 
     private static BTController mBTController;
-    private BTServiceBroadcastReceiver mBroadcastReceiver;
+    private BTDeviceManager mBroadcastReceiver;
 
     public static final int REQUEST_BT_ENABLE = 1;
     public static final int REQUEST_BT_DISCOVERABLE = 11;
@@ -20,7 +20,7 @@ public class BTManager {
 
     public BTManager(Context context) {
         this.context = context;
-        mBroadcastReceiver = new BTServiceBroadcastReceiver(this, context);
+        mBroadcastReceiver = new BTDeviceManager(this, context);
     }
 
     public void registerBroadcastReceivers() {
@@ -51,7 +51,7 @@ public class BTManager {
             activity.startActivityForResult(enableBtIntent, REQUEST_BT_ENABLE);
         } else {
             // Start BT utils once we have an enabled BT adapter
-            BTServiceHandler handler = new BTServiceHandler(context);
+            BTMessageHandler handler = new BTMessageHandler(context);
             mBTController = new BTController(handler, context);
             handler.setBTController(mBTController);
             mBTController.startBTServer();

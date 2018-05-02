@@ -23,7 +23,7 @@ import java.util.ArrayList;
     If we find a NaturalNet device we get the metadata in the handshake.
  */
 
-public class BTServiceBroadcastReceiver extends BroadcastReceiver {
+public class BTDeviceManager extends BroadcastReceiver {
 
     private static final String TAG = "BTBroadcastReceiver";
 
@@ -42,7 +42,7 @@ public class BTServiceBroadcastReceiver extends BroadcastReceiver {
 
     private ArrayList<String> failedMACs = new ArrayList<>();
 
-    BTServiceBroadcastReceiver(BTManager manager, Context context) {
+    BTDeviceManager(BTManager manager, Context context) {
         this.manager = manager;
 
         IntentFilter handshakeFilter = new IntentFilter("com.louis.naturalnet.bluetooth.HandshakeReceiver");

@@ -40,6 +40,7 @@ public class DeviceInformation {
             @Override
             public void onReceive(Context context, Intent intent) {
                 gpsQuality = SignalUtils.getGpsQuality(intent);
+                Log.d(TAG, intent.toString());
             }
         }, locationFilter);
     }

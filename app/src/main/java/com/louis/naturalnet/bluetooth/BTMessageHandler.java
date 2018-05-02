@@ -18,9 +18,9 @@ import org.json.JSONObject;
     Allows message-based communication across BT services
  */
 
-public class BTServiceHandler extends Handler {
+public class BTMessageHandler extends Handler {
 
-    private static final String TAG = "BTServiceHandler";
+    private static final String TAG = "BTMessageHandler";
 
     private BTController btController;
     private Context context;
@@ -33,7 +33,7 @@ public class BTServiceHandler extends Handler {
         String data;
     }
 
-    BTServiceHandler(Context context) {
+    BTMessageHandler(Context context) {
         this.context = context;
     }
 
@@ -109,8 +109,6 @@ public class BTServiceHandler extends Handler {
                         queueManager.packetsReceived++;
                         queueManager.appendToQueue(id, path, data, delay);
                     }
-
-                    queueManager.updateName();
 
                     Log.d(TAG, "Received " + receivedDataLength + " bytes data from " + MAC);
                     Log.d(TAG, "New queue size: " + QueueManager.getInstance(context).getQueueLength());
@@ -210,11 +208,5 @@ public class BTServiceHandler extends Handler {
             return result;
         }
 
-        // Do we want this?
-        @Override
-        protected void onPostExecute(Result re) {
-            if (re.length > 0)
-                QueueManager.getInstance(context).updateName();
-        }
     }
 }

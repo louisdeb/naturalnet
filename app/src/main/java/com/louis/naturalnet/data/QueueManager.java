@@ -1,11 +1,8 @@
 package com.louis.naturalnet.data;
 
-import com.louis.naturalnet.energy.BatteryMonitor;
-
 import java.util.ArrayList;
 import java.util.Random;
 
-import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.provider.Settings.Secure;
 import android.util.Log;
@@ -69,7 +66,6 @@ public class QueueManager {
 //			qItem.timestamp = System.currentTimeMillis();
 //			queue.add(qItem);
 //		}
-//		updateName();
 //	}
 
 	// Used to use the temperature sensor to create some data.
@@ -80,7 +76,6 @@ public class QueueManager {
         // qItem.data = String.valueOf(TemperatureSensorListener.getInstance(mContext).getSensorValue());
 		qItem.timestamp = System.currentTimeMillis();
 		queue.add(qItem);
-//		updateName();
 	}
 
 	public void appendToQueue(String packetId, String path, String data, String delay) {
@@ -244,24 +239,5 @@ public class QueueManager {
 		}
 
 		return queueSize;
-	}
-	
-	public void updateName() {
-		StringBuilder newName = new StringBuilder();
-		newName.append("OppNet");
-		newName.append(":");
-		newName.append("R");
-		newName.append(":");
-		newName.append(ID);
-		newName.append(":");
-		newName.append(queue.size());
-		newName.append(":");
-		newName.append(BatteryMonitor.getInstance(mContext).getBatteryLevel());
-
-		BluetoothAdapter BTAdapter = BluetoothAdapter.getDefaultAdapter();
-		if (BTAdapter != null)
-			BTAdapter.setName(newName.toString());
-
-		Log.d(TAG, "update name to " + newName.toString());
 	}
 }

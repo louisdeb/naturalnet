@@ -13,6 +13,7 @@ import android.content.Context;
 import android.content.Intent;
 import com.louis.naturalnet.utils.Constants;
 import com.louis.naturalnet.device.DeviceInformation;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.bluetooth.BluetoothAdapter;
@@ -35,7 +36,7 @@ import android.util.Log;
     This class contains code for both the Server and Client BT models, as well as
     code to handle a connection (the ConnectionThread) which transfers data over an established connection.
 
-    Messenger mMessenger is used to handle data. The Messenger has functionality from BTServiceHandler, which parses
+    Messenger mMessenger is used to handle data. The Messenger has functionality from BTMessageHandler, which parses
     received data.
  */
 class BTCom {
@@ -266,7 +267,7 @@ class BTCom {
         // then we will stop discovering at every device found.
         // So we would want to wait till the scan is completed, and then attempt a communication with each of those
         // devices.
-        // Note 2: I think we do this in BTServiceBroadcastReceiver.
+        // Note 2: I think we do this in BTDeviceManager.
 
 		public void run() {
 			// Cancel discovery because it will slow down the connection.
@@ -299,7 +300,7 @@ class BTCom {
 									if (mMessenger != null)
                                         announceFailure(Constants.BT_CLIENT_CONNECT_FAILED);
 
-                                    // Tell the BTServiceBroadcastReceiver that we failed to connect to the device.
+                                    // Tell the BTDeviceManager that we failed to connect to the device.
                                     Intent connectionIntent = new Intent("com.louis.naturalnet.bluetooth.HandshakeReceiver");
                                     connectionIntent.putExtra("connected", false);
                                     connectionIntent.putExtra("device", device);
@@ -488,41 +489,32 @@ class BTCom {
 			// Keep listening to the InputStream until an exception occurs.
 			while (true) {
 				try {
-					// Read from the InputStream.
-					buffer = in.readLine();
+                    // Read from the InputStream.
+                    buffer = in.readLine();
 
-					Log.d("ConnectedThread", "Got buffer: " + buffer.toString());
-					JSONObject metadata = new JSONObject(buffer.toString());
-					if ((boolean) metadata.get("handshake")) {
-					    // We have received a handshake from the server.
-                        // Because sendHandshake sends this intent before receiving a message from the server,
-                        // this will be a duplicate broadcast until that is fixed.
+                    Log.d("ConnectedThread", "Got message: " + buffer.toString());
 
-                        Intent handshakeIntent = new Intent("com.louis.naturalnet.bluetooth.HandshakeReceiver");
-                        handshakeIntent.putExtra("connected", true);
-                        handshakeIntent.putExtra("device", getDevice());
-                        handshakeIntent.putExtra("metadata", metadata.toString());
-                        context.sendBroadcast(handshakeIntent);
+                    // We might want to put the handshake handling into handleMessage or the BTMessageHandler.
+                    try {
+                        JSONObject metadata = new JSONObject(buffer.toString());
+                        if ((boolean) metadata.get("handshake")) {
+                            // Announce that the client has received a handshake from the server.
+                            Intent handshakeIntent = new Intent("com.louis.naturalnet.bluetooth.HandshakeReceiver");
+                            handshakeIntent.putExtra("connected", true);
+                            handshakeIntent.putExtra("device", getDevice());
+                            handshakeIntent.putExtra("metadata", metadata.toString());
+                            context.sendBroadcast(handshakeIntent);
+                        } else {
+                            throw new JSONException("Received a message without a handshake");
+                        }
+                    } catch (JSONException e) {
+                        // This is fine. It just means that we received a message that wasn't a handshake.
+                        // metadata.get("handshake") will throw a JSONException. The if statement might not even be
+                        // necessary.
+                        handleMessage(buffer);
                     }
-
-					// Send the obtained bytes to the UI activity.
-					if (mMessenger != null) {
-						try {
-							// Send the obtained bytes to the UI Activity.
-							Message msg=Message.obtain();
-                            msg.what = Constants.BT_DATA;
-
-							Bundle b = new Bundle();
-							b.putString(Constants.BT_DATA_CONTENT, buffer.toString());
-							b.putString(Constants.BT_DEVICE_MAC, this.getMac());
-							msg.setData(b);
-
-							mMessenger.send(msg);
-						} catch (RemoteException e) {
-							e.printStackTrace();
-						}
-					}
-				} catch (Exception e) {
+				} catch (IOException e) {
+				    Log.d(TAG, "Got exception while trying to read from the input stream.");
 					e.printStackTrace();
 
 					// Send message to update UI.
@@ -547,6 +539,27 @@ class BTCom {
 				}
 			}
 		}
+
+		// Handle a non-handshake message.
+		private void handleMessage(Object buffer) {
+            // Send the obtained bytes to the UI activity.
+            if (mMessenger != null) {
+                try {
+                    // Send the obtained bytes to the UI Activity.
+                    Message msg=Message.obtain();
+                    msg.what = Constants.BT_DATA;
+
+                    Bundle b = new Bundle();
+                    b.putString(Constants.BT_DATA_CONTENT, buffer.toString());
+                    b.putString(Constants.BT_DEVICE_MAC, this.getMac());
+                    msg.setData(b);
+
+                    mMessenger.send(msg);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
 		// Write a JSON object to the output stream.
 		void write(JSONObject json) {

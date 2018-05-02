@@ -44,7 +44,7 @@ public abstract class Constants {
     public final static int BT_DISCONNECTED = 10406;
     public final static int BT_SUCCESS = 10407;
 
-    // Data labels used when communicating with the local Messenger (BTServiceHandler).
+    // Data labels used when communicating with the local Messenger (BTMessageHandler).
     public final static String BT_DATA_CONTENT = "bt_data"; // Data received from another device.
     public final static String BT_DEVICE_MAC = "bt_device_mac"; // MAC address of the communicating device (us or them).
     public final static String BT_DEVICE_NAME = "bt_device_name"; // Name of the peer device.
