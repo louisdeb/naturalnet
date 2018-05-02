@@ -18,7 +18,10 @@ public class QueueManager {
 	public int packetsReceived = 0;
 	public int packetsSent = 0;
 
+	// Contacts is never actually read. In BTDeviceManager it tracks devices we've sent to. In BTDeviceHandler it tracks
+	// devices we've connected to.
 	public int contacts = 0;
+
 	public int peers = 0;
 
 	// Queue is a json with format {sequence of ids : content}.
@@ -33,8 +36,7 @@ public class QueueManager {
 		ID = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
 		
 		Log.d(TAG, "init queue");
-		// updateName();
-		
+
 		start(context);
 	}
 
@@ -134,7 +136,6 @@ public class QueueManager {
 	//			}
 	//		}
 	//		queue = newQueue;
-	//		updateBluetoothDeviceName();
 	//		return data;
 	//	}
 

@@ -51,8 +51,8 @@ public class DeviceInformation {
         try {
             metadata.put("handshake", true);
             metadata.put("signalQuality", signalQuality.getVal());
-            metadata.put("battery", BatteryMonitor.getInstance(activity).getBatteryLevel());
-            metadata.put("queueLength", QueueManager.getInstance(activity).getQueueLength());
+            metadata.put("battery", getBatteryLevel());
+            metadata.put("queueLength", getQueueLength());
 
             // Adds the gps quality but not actually location information.
             metadata.put("gpsQuality", gpsQuality);
@@ -63,10 +63,17 @@ public class DeviceInformation {
 
         return metadata;
     }
+    
+    static int getBatteryLevel() {
+        return BatteryMonitor.getInstance(activity).getBatteryLevel();
+    }
 
-    // Handshake parsing functions
+    static int getQueueLength() {
+        return QueueManager.getInstance(activity).getQueueLength();
+    }
 
-    static SignalQuality getSignalQuality(JSONObject metadata) {
+    /* Handshake parsing functions */
+    static SignalQuality parseSignalQuality(JSONObject metadata) {
         try {
             int val = (int) metadata.get("signalQuality");
             return SignalQuality.values()[val];
@@ -75,7 +82,7 @@ public class DeviceInformation {
         }
     }
 
-    static SignalQuality getGpsQuality(JSONObject metadata) {
+    static SignalQuality parseGpsQuality(JSONObject metadata) {
         try {
             int val = (int) metadata.get("gpsQuality");
             return SignalQuality.values()[val];
@@ -84,8 +91,7 @@ public class DeviceInformation {
         }
     }
 
-
-    static int getBatteryLevel(JSONObject metadata) {
+    static int parseBatteryLevel(JSONObject metadata) {
         try {
             return (int) metadata.get("battery");
         } catch (JSONException e) {
@@ -93,7 +99,7 @@ public class DeviceInformation {
         }
     }
 
-    static int getQueueLength(JSONObject metadata) {
+    static int parseQueueLength(JSONObject metadata) {
         try {
             return (int) metadata.get("queueLength");
         } catch (JSONException e) {

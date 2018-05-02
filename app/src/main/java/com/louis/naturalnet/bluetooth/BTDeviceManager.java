@@ -178,10 +178,10 @@ public class BTDeviceManager extends BroadcastReceiver {
         QueueManager queueManager;
         BatteryMonitor batteryMonitor;
 
-        ArrayList<BluetoothDevice> devices;
+        ArrayList<NaturalNetDevice> devices;
 
         ExchangeData(BTManager btManager, QueueManager queueManager, BatteryMonitor batteryMonitor,
-                     ArrayList<BluetoothDevice> devices) {
+                     ArrayList<NaturalNetDevice> devices) {
             this.btManager = btManager;
             this.queueManager = queueManager;
             this.batteryMonitor = batteryMonitor;
@@ -195,45 +195,30 @@ public class BTDeviceManager extends BroadcastReceiver {
             queueManager.peers += devices.size();
 
             double maxScore = 0;
-            BluetoothDevice deviceToConnect = null;
+            NaturalNetDevice deviceToSendTo = null;
 
             // Find relay with best objective function score to send to
-            for (BluetoothDevice device : devices) {
+            for (NaturalNetDevice device : devices) {
 
-                // Device contextual information is stored in the device name. Instead maybe we should send a message
-                // to see if the device is an OppNet relay, and then if so, in the response return this data.
-                // A) Are you an OppNet relay?
-                // B) Yes and here is my contextual information
-                // B') No response
-
-                // The use of Utils.getQueueLen (and possibly getBatteryLevel) results in a memory leak.
-                // This exchange data may be quite specific to OppNet's purposes, so we can remove this code
-                // for now and reimplement communications later.
-
-                /*
-                int tmpPeerQueueLen = Utils.getQueueLen(device.getName());
-                int tmpEnergyLevel = Utils.getBatteryLevel(device.getName());
-
-                // This looks like our objective function.
-                double score = (queueManager.getQueueLength() - tmpPeerQueueLen) +
-                        Constants.ENERGY_PENALTY_COEFF *
-                                (tmpEnergyLevel - batteryMonitor.getBatteryLevel());
+                // The traditional OppNet objective function. We also want to include location decision making.
+                double score = device.getScore();
 
                 if (score > maxScore) {
-                    deviceToConnect = device;
+                    deviceToSendTo = device;
                     maxScore = score;
-
-                    Log.d(TAG, "Greater obj function score " + String.valueOf(tmpPeerQueueLen) + ":"
-                            + String.valueOf(Utils.getBatteryLevel(device.getName())));
                 }
-                */
             }
 
             // If we found a suitable relay device and we have data to send.
-            if (deviceToConnect != null && queueManager.getQueueLength() > 0) {
-                btManager.connectToBTServer(deviceToConnect, Constants.BT_CLIENT_TIMEOUT);
+            if (deviceToSendTo != null && queueManager.getQueueLength() > 0) {
+                // btManager.connectToBTServer(deviceToSendTo, Constants.BT_CLIENT_TIMEOUT);
+                // We don't need to actually connect to the BT server, we should already have a connection. Instead
+                // we want to cause some send to the device.
 
-                devices.remove(deviceToConnect);
+                // I think this remove means that we won't send the device information twice. Does doInBackground
+                // run indefinitely? Does it send the information to all devices, but in order of descending score?
+                devices.remove(deviceToSendTo);
+
                 queueManager.contacts += 1;
             }
 

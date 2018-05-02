@@ -36,7 +36,7 @@ import android.util.Log;
     This class contains code for both the Server and Client BT models, as well as
     code to handle a connection (the ConnectionThread) which transfers data over an established connection.
 
-    Messenger mMessenger is used to handle data. The Messenger has functionality from BTMessageHandler, which parses
+    Messenger messageHandler is used to handle data. The Messenger has functionality from BTMessageHandler, which parses
     received data.
  */
 class BTCom {
@@ -52,7 +52,7 @@ class BTCom {
     private final static StringBuffer clientLock = new StringBuffer();
 
 	// All received messages are sent through this messenger to its parent.
-	private Messenger mMessenger = null;
+	private Messenger messageHandler = null;
 
 	// Current connection state, only one server thread and one client thread.
 	private ServerThread mServerThread;
@@ -74,10 +74,10 @@ class BTCom {
 	}
 
 	// Sets the communication callback Messenger if not already set.
-    // We might want to override any existing mMessenger to avoid unexpected loss of callbacks?
+    // We might want to override any existing messageHandler to avoid unexpected loss of callbacks?
 	void setCallback(Messenger callback) {
-		if (mMessenger == null)
-			mMessenger = callback;
+		if (messageHandler == null)
+			messageHandler = callback;
 	}
 
     // Start a BT scan for devices which lasts for _duration_.
@@ -297,8 +297,7 @@ class BTCom {
 
                                     Log.d(TAG, "Timeout for connection: " + device.getAddress());
 
-									if (mMessenger != null)
-                                        announceFailure(Constants.BT_CLIENT_CONNECT_FAILED);
+                                    announceFailure(Constants.BT_CLIENT_CONNECT_FAILED);
 
                                     // Tell the BTDeviceManager that we failed to connect to the device.
                                     Intent connectionIntent = new Intent("com.louis.naturalnet.bluetooth.HandshakeReceiver");
@@ -322,8 +321,7 @@ class BTCom {
 				} else {
 				    Log.d(TAG, "Already connected: " + device.getAddress());
 					// Already connected.
-					if (mMessenger != null)
-					    announceFailure(Constants.BT_CLIENT_ALREADY_CONNECTED);
+                    announceFailure(Constants.BT_CLIENT_ALREADY_CONNECTED);
 				}
 			} catch (IOException connectException) {
 				// Unable to connect; close the serverSocket and get out.
@@ -347,17 +345,19 @@ class BTCom {
 		}
 
 		private void announceFailure(int what) {
-            try {
-                Message msg=Message.obtain();
-                msg.what = what;
+            if (messageHandler != null) {
+                try {
+                    Message msg = Message.obtain();
+                    msg.what = what;
 
-                Bundle b = new Bundle();
-                b.putString(Constants.BT_DEVICE_MAC, device.getAddress());
+                    Bundle b = new Bundle();
+                    b.putString(Constants.BT_DEVICE_MAC, device.getAddress());
 
-                msg.setData(b);
-                mMessenger.send(msg);
-            } catch (RemoteException e) {
-                e.printStackTrace();
+                    msg.setData(b);
+                    messageHandler.send(msg);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         }
 	}
@@ -422,11 +422,10 @@ class BTCom {
 		ConnectedThread newConn = new ConnectedThread(socket);
 		newConn.start();
 
-		// TODO: Review what the messenger provides us with and whether we want it alongside broadcasting.
+        // Add this connection to our list of connections.
+        connections.add(newConn);
 
-		// Add this connection to our list of connections.
-		connections.add(newConn);
-
+        // TODO: Review what the messenger provides us with and whether we want it alongside broadcasting.
 		// Send the info of the connected device back to the UI Activity.
 		Message msg = Message.obtain();
 		msg.what = asClient ? Constants.BT_CLIENT_CONNECTED : Constants.BT_SERVER_CONNECTED;
@@ -438,8 +437,8 @@ class BTCom {
 		msg.setData(b);
 
 		try {
-			if (mMessenger != null)
-				mMessenger.send(msg);
+			if (messageHandler != null)
+				messageHandler.send(msg);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -526,7 +525,7 @@ class BTCom {
 						b.putString(Constants.BT_DEVICE_MAC, this.getMac());
 						msg.setData(b);
 
-						mMessenger.send(msg);
+						messageHandler.send(msg);
 					} catch (RemoteException e1) {
 						e1.printStackTrace();
 					}
@@ -543,7 +542,7 @@ class BTCom {
 		// Handle a non-handshake message.
 		private void handleMessage(Object buffer) {
             // Send the obtained bytes to the UI activity.
-            if (mMessenger != null) {
+            if (messageHandler != null) {
                 try {
                     // Send the obtained bytes to the UI Activity.
                     Message msg=Message.obtain();
@@ -554,7 +553,7 @@ class BTCom {
                     b.putString(Constants.BT_DEVICE_MAC, this.getMac());
                     msg.setData(b);
 
-                    mMessenger.send(msg);
+                    messageHandler.send(msg);
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }

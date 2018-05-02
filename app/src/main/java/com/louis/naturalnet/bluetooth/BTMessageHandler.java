@@ -15,9 +15,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /*
-    Allows message-based communication across BT services
+    Handles received message and responds with ACKs and data from the queue.
  */
-
 public class BTMessageHandler extends Handler {
 
     private static final String TAG = "BTMessageHandler";
@@ -138,7 +137,6 @@ public class BTMessageHandler extends Handler {
         }
     }
 
-    // Same comment as the ExchangeData task
     private class ClientConnectionTask extends AsyncTask<String, Void, Result> {
 
         // Parses packets in the queue & returns a result of their data
