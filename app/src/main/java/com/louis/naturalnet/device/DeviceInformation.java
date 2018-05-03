@@ -154,7 +154,7 @@ public class DeviceInformation {
 
             return location;
         } catch (Exception e) {
-            Log.d(TAG, "failed to parse location");
+            Log.d(TAG, "Failed to parse location");
             e.printStackTrace();
             return null;
         }

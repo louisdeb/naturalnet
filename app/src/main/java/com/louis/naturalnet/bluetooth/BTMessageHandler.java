@@ -1,10 +1,10 @@
 package com.louis.naturalnet.bluetooth;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import com.louis.naturalnet.data.QueueManager;
 import com.louis.naturalnet.packet.BasicPacket;
@@ -17,10 +17,11 @@ import org.json.JSONObject;
 /*
     Handles received message and responds with ACKs and data from the queue.
  */
-public class BTMessageHandler extends Handler {
+class BTMessageHandler {
 
     private static final String TAG = "BTMessageHandler";
 
+    // The BTController allows us to send data to a device through BTCom.
     private BTController btController;
     private Context context;
 
@@ -34,46 +35,32 @@ public class BTMessageHandler extends Handler {
 
     BTMessageHandler(Context context) {
         this.context = context;
+
+        IntentFilter messageFilter = new IntentFilter("com.louis.naturalnet.bluetooth.MessageReceiver");
+        context.registerReceiver(new MessageReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                handleMessage(intent);
+            }
+        }, messageFilter);
     }
 
     void setBTController(BTController btController) {
         this.btController = btController;
     }
 
-    @Override
-    public void handleMessage(Message msg) {
-        Bundle bundle = msg.getData();
-        String MAC = bundle.getString(Constants.BT_DEVICE_MAC);
-        String name = bundle.getString(Constants.BT_DEVICE_NAME);
+    private void handleMessage(Intent intent) {
+        // TODO: Implement intent parsing and message handling.
 
-        switch (msg.what) {
-            case Constants.BT_CLIENT_ALREADY_CONNECTED:
-            case Constants.BT_CLIENT_CONNECTED:
-                // don't continue
-                new ClientConnectionTask().execute(MAC, name);
-                break;
-            case Constants.BT_CLIENT_CONNECT_FAILED:
-                // Log.d(Constants.TAG_ACT_TEST, "Client Failed");
-                // new ExchangeData().execute();
-                break;
-            case Constants.BT_SUCCESS:
-                // Triggered by receiver
-                Log.d(Constants.TAG_ACT_TEST, "Success");
-                break;
-            case Constants.BT_DISCONNECTED:
-                Log.d(Constants.TAG_ACT_TEST, "Disconnected");
-                break;
-            case Constants.BT_SERVER_CONNECTED:
-                // Do nothing, wait for data
-                Log.d(TAG, "Server Connected");
-                QueueManager.getInstance(context).contacts += 1;
-                break;
-            case Constants.BT_DATA:
-                handlePacket(bundle, MAC);
-                break;
-            default:
-                break;
-        }
+        // Old message handler had this:
+        // Bundle bundle = msg.getData();
+        // String MAC = bundle.getString(Constants.BT_DEVICE_MAC);
+
+        // For msg.what = BT_CLIENT_CONNECTED
+        // it called new ClientConnectionTask().execute(MAC, name);
+
+        // For msg.what = BT_DATA_RECEIVED
+        // it called handlePacket
     }
 
     private void handlePacket(Bundle bundle, String MAC) {

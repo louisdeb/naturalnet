@@ -52,7 +52,8 @@ public class BTManager {
         } else {
             // Start BT utils once we have an enabled BT adapter
             BTMessageHandler handler = new BTMessageHandler(context);
-            mBTController = new BTController(handler, context);
+            mBTController = new BTController(context);
+
             handler.setBTController(mBTController);
             mBTController.startBTServer();
 

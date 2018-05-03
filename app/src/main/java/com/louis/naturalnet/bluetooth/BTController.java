@@ -16,15 +16,12 @@ public class BTController {
 
 	private BTCom btComms;
 
-	BTController(Handler btHandler, Context context){
-		// init bt utility
+	BTController(Context context) {
 		btComms = BTCom.getInstance(context);
-        Messenger mMessenger = new Messenger(btHandler);
-		btComms.setCallback(mMessenger);
 	}
 
 	void startBTScan(long duration) {
-			btComms.startScan(duration);
+		btComms.startScan(duration);
 	}
 
 	void startBTServer() {

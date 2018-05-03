@@ -38,7 +38,7 @@ public abstract class Constants {
     // Status codes.
     public final static int BT_CLIENT_CONNECTED = 10401;
     public final static int BT_SERVER_CONNECTED = 10402;
-    public final static int BT_DATA = 10403;
+    public final static int BT_DATA_RECEIVED = 10403;
     public final static int BT_CLIENT_CONNECT_FAILED = 10404;
     public final static int BT_CLIENT_ALREADY_CONNECTED = 10405;
     public final static int BT_DISCONNECTED = 10406;

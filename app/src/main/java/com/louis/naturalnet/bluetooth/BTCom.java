@@ -23,8 +23,6 @@ import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
 import android.util.Log;
 
 /**
@@ -35,9 +33,6 @@ import android.util.Log;
 /*
     This class contains code for both the Server and Client BT models, as well as
     code to handle a connection (the ConnectionThread) which transfers data over an established connection.
-
-    Messenger messageHandler is used to handle data. The Messenger has functionality from BTMessageHandler, which parses
-    received data.
  */
 class BTCom {
 
@@ -50,9 +45,6 @@ class BTCom {
     private Handler timeoutHandler = new Handler();
 
     private final static StringBuffer clientLock = new StringBuffer();
-
-	// All received messages are sent through this messenger to its parent.
-	private Messenger messageHandler = null;
 
 	// Current connection state, only one server thread and one client thread.
 	private ServerThread mServerThread;
@@ -71,13 +63,6 @@ class BTCom {
 			_this = new BTCom(context);
 
 		return _this;
-	}
-
-	// Sets the communication callback Messenger if not already set.
-    // We might want to override any existing messageHandler to avoid unexpected loss of callbacks?
-	void setCallback(Messenger callback) {
-		if (messageHandler == null)
-			messageHandler = callback;
 	}
 
     // Start a BT scan for devices which lasts for _duration_.
@@ -108,7 +93,6 @@ class BTCom {
     // Start the server, allowing for other devices to contact us.
     synchronized void startServer() {
         stopServer();
-
         mServerThread = new ServerThread(Constants.APP_UUID);
         mServerThread.start();
     }
@@ -296,8 +280,6 @@ class BTCom {
 
                                     Log.d(TAG, "Timeout for connection: " + device.getAddress());
 
-                                    announceFailure(Constants.BT_CLIENT_CONNECT_FAILED);
-
                                     // Tell the BTDeviceManager that we failed to connect to the device.
                                     Intent connectionIntent = new Intent("com.louis.naturalnet.bluetooth.HandshakeReceiver");
                                     connectionIntent.putExtra("connected", false);
@@ -317,10 +299,6 @@ class BTCom {
 
 					// Perform a handshake with the device.
                     sendHandshake(mClientSocket, mClientSocket.getRemoteDevice(), true);
-				} else {
-				    Log.d(TAG, "Already connected: " + device.getAddress());
-					// Already connected.
-                    announceFailure(Constants.BT_CLIENT_ALREADY_CONNECTED);
 				}
 			} catch (IOException connectException) {
 				// Unable to connect; close the serverSocket and get out.
@@ -343,22 +321,6 @@ class BTCom {
 			}
 		}
 
-		private void announceFailure(int what) {
-            if (messageHandler != null) {
-                try {
-                    Message msg = Message.obtain();
-                    msg.what = what;
-
-                    Bundle b = new Bundle();
-                    b.putString(Constants.BT_DEVICE_MAC, device.getAddress());
-
-                    msg.setData(b);
-                    messageHandler.send(msg);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
 	}
 
     private synchronized void sendHandshake(BluetoothSocket socket, BluetoothDevice device, boolean asClient) {
@@ -403,7 +365,7 @@ class BTCom {
                 }
             }
 
-            connected(socket, device, asClient);
+            connected(socket, device);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -414,7 +376,7 @@ class BTCom {
 	 * @param socket  The BluetoothSocket on which the connection was made
 	 * @param device  The BluetoothDevice that has been connected
 	 */
-	private synchronized void connected(BluetoothSocket socket, BluetoothDevice device, boolean asClient) {
+	private synchronized void connected(BluetoothSocket socket, BluetoothDevice device) {
 	    Log.d(TAG, "Called 'connected' with device: " + device.getAddress());
 
 	    // Start the connection thread.
@@ -424,23 +386,9 @@ class BTCom {
         // Add this connection to our list of connections.
         connections.add(newConn);
 
-        // TODO: Review what the messenger provides us with and whether we want it alongside broadcasting.
-		// Send the info of the connected device back to the UI Activity.
-		Message msg = Message.obtain();
-		msg.what = asClient ? Constants.BT_CLIENT_CONNECTED : Constants.BT_SERVER_CONNECTED;
-
-		// Send necessary info to the handler.
-		Bundle b = new Bundle();
-		b.putString(Constants.BT_DEVICE_MAC, device.getAddress());
-		b.putString(Constants.BT_DEVICE_NAME, device.getName());
-		msg.setData(b);
-
-		try {
-			if (messageHandler != null)
-				messageHandler.send(msg);
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
+        // We used to tell the BTMessageHandler here that we had a connection to a device. However if we're the client
+        // we haven't yet received a handshake, so we would want to wait for that.
+        // Better to let the BTDeviceManager decide or in some way trigger a send to the device.
 	}
 
 	/**
@@ -452,8 +400,7 @@ class BTCom {
 		private final BluetoothSocket mConnectedSocket;
 		private final InputStream mmInStream;
 		private final OutputStream mmOutStream;
-		private boolean isCancelled = false;
-		
+
 		ConnectedThread(BluetoothSocket socket) {
 			mConnectedSocket = socket;
 
@@ -512,22 +459,12 @@ class BTCom {
                         handleMessage(buffer);
                     }
 				} catch (IOException e) {
+				    // We no longer announce the socket failure to the BTMessageHandler. We may want to broadcast
+                    // something to the BTDeviceManager to say that our connection has dropped (it could then store
+                    // the device as a known NaturalNet device but with the knowledge that we are not connected).
+
 				    Log.d(TAG, "Got exception while trying to read from the input stream.");
 					e.printStackTrace();
-
-					// Send message to update UI.
-					try {
-                        Message msg = Message.obtain();
-                        msg.what = isCancelled ? Constants.BT_SUCCESS : Constants.BT_DISCONNECTED;
-
-                        Bundle b = new Bundle();
-						b.putString(Constants.BT_DEVICE_MAC, this.getMac());
-						msg.setData(b);
-
-						messageHandler.send(msg);
-					} catch (RemoteException e1) {
-						e1.printStackTrace();
-					}
 
 					// Remove the connection if we got some exception.
 					stopConnection(getMac());
@@ -538,25 +475,20 @@ class BTCom {
 			}
 		}
 
-		// Handle a non-handshake message.
+		// Send a non-handshake message to the BTMessageHandler.
 		private void handleMessage(Object buffer) {
-            // Send the obtained bytes to the UI activity.
-            if (messageHandler != null) {
-                try {
-                    // Send the obtained bytes to the UI Activity.
-                    Message msg=Message.obtain();
-                    msg.what = Constants.BT_DATA;
+            // Send the obtained bytes to the UI Activity.
+            Message msg=Message.obtain();
+            msg.what = Constants.BT_DATA_RECEIVED;
 
-                    Bundle b = new Bundle();
-                    b.putString(Constants.BT_DATA_CONTENT, buffer.toString());
-                    b.putString(Constants.BT_DEVICE_MAC, this.getMac());
-                    msg.setData(b);
+            Bundle b = new Bundle();
+            b.putString(Constants.BT_DATA_CONTENT, buffer.toString());
+            b.putString(Constants.BT_DEVICE_MAC, getMac());
+            msg.setData(b);
 
-                    messageHandler.send(msg);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
+            Intent messageFilter = new Intent("com.louis.naturalnet.bluetooth.MessageReceiver");
+            messageFilter.putExtra("message", msg);
+            context.sendBroadcast(messageFilter);
         }
 
 		// Write a JSON object to the output stream.
@@ -585,10 +517,8 @@ class BTCom {
 			}
 		}
 
-		// Call this from the main activity to shutdown the connection.
+		// Shutdown the connection.
 		void cancel() {
-			isCancelled = true;
-
 			try {
 				mmInStream.close();
 				mmOutStream.close();
