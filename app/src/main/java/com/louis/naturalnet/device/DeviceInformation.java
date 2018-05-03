@@ -42,7 +42,8 @@ public class DeviceInformation {
             @Override
             public void onReceive(Context context, Intent intent) {
                 gpsQuality = SignalUtils.getGpsQuality(intent);
-                location = SignalUtils.getLocation(intent);
+                Location newLocation = SignalUtils.getLocation(intent);
+                location = (newLocation == null) ? location : newLocation;
                 Log.d(TAG, intent.toString());
             }
         }, locationFilter);
@@ -64,7 +65,7 @@ public class DeviceInformation {
 
         return metadata;
     }
-    
+
     static int getBatteryLevel() {
         return BatteryMonitor.getInstance(activity).getBatteryLevel();
     }
@@ -101,10 +102,60 @@ public class DeviceInformation {
 
     static Location parseLocation(JSONObject metadata) {
         try {
-            JSONObject locationJSON = new JSONObject((String) metadata.get("location"));
-            // We have to manually parse this JSON into a Location object.
-            return null;
-        } catch (JSONException e) {
+            String locString = metadata.get("location").toString();
+            Location location = new Location("fused");
+
+            // We might also want to parse the 'et' value (elapsed time).
+
+            if (locString.contains("fused")) {
+                int latStart = locString.indexOf("fused") + "fused".length() + 1;
+                int latEnd = locString.indexOf(',');
+                double lat = Double.valueOf(locString.substring(latStart, latEnd));
+
+                int lonStart = latEnd + 1;
+                int lonEnd = locString.indexOf(' ', lonStart);
+                double lon = Double.valueOf(locString.substring(lonStart, lonEnd));
+
+                location.setLatitude(lat);
+                location.setLongitude(lon);
+            }
+
+            if (locString.contains("acc")) {
+                int accStart = locString.indexOf("acc") + "acc".length() + 1;
+                int accEnd = locString.indexOf(' ', accStart);
+                float acc = Float.valueOf(locString.substring(accStart, accEnd));
+
+                location.setAccuracy(acc);
+            }
+
+            if (locString.contains("alt")) {
+                int altStart = locString.indexOf("alt") + "alt".length() + 1;
+                int altEnd = locString.indexOf(' ', altStart);
+                double alt = Double.valueOf(locString.substring(altStart, altEnd));
+
+                location.setAltitude(alt);
+            }
+
+            if (locString.contains("vel")) {
+                int velStart = locString.indexOf("vel") + "vel".length() + 1;
+                int velEnd = locString.indexOf(' ', velStart);
+                float vel = Float.valueOf(locString.substring(velStart, velEnd));
+
+                location.setSpeed(vel);
+            }
+
+            if (locString.contains("bear")) {
+                int bearStart = locString.indexOf("bear") + "bear".length() + 1;
+                int bearEnd = locString.indexOf(' ', bearStart);
+                float bear = Float.valueOf(locString.substring(bearStart, bearEnd));
+
+                location.setBearing(bear);
+            }
+
+            return location;
+        } catch (Exception e) {
+            Log.d(TAG, "failed to parse location");
+            e.printStackTrace();
             return null;
         }
     }
