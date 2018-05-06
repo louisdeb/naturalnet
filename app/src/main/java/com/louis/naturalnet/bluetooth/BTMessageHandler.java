@@ -5,9 +5,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Message;
 import android.util.Log;
 import com.louis.naturalnet.data.QueueManager;
-import com.louis.naturalnet.packet.BasicPacket;
+import com.louis.naturalnet.data.Packet;
 import com.louis.naturalnet.utils.Constants;
 import com.louis.naturalnet.utils.Utils;
 import org.json.JSONArray;
@@ -50,78 +51,75 @@ class BTMessageHandler {
     }
 
     private void handleMessage(Intent intent) {
-        // TODO: Implement intent parsing and message handling.
-
-        // Old message handler had this:
-        // Bundle bundle = msg.getData();
-        // String MAC = bundle.getString(Constants.BT_DEVICE_MAC);
-
-        // For msg.what = BT_CLIENT_CONNECTED
-        // it called new ClientConnectionTask().execute(MAC, name);
-
-        // For msg.what = BT_DATA_RECEIVED
-        // it called handlePacket
-    }
-
-    private void handlePacket(Bundle bundle, String MAC) {
-        JSONObject dataContent;
-        int packetType;
+        Message message = intent.getParcelableExtra("message");
+        Bundle bundle = message.getData();
+        String MAC = bundle.getString(Constants.BT_DEVICE_MAC);
 
         try {
-            dataContent = new JSONObject(bundle.getString(Constants.BT_DATA_CONTENT));
-            packetType = dataContent.getInt(BasicPacket.PACKET_TYPE);
+            JSONObject dataContent = new JSONObject(bundle.getString(Constants.BT_DATA_CONTENT));
+            int packetType = dataContent.getInt(Packet.PACKET_TYPE);
 
             switch (packetType) {
-                case BasicPacket.PACKET_TYPE_DATA:
-                    // Handling a data packet
-                    // Parse, add to queue, and send ACK
-
-                    QueueManager queueManager = QueueManager.getInstance(context);
-                    JSONArray dataArray = dataContent.getJSONArray(BasicPacket.PACKET_DATA);
-                    int receivedDataLength = 0;
-
-                    // Parse the data
-                    for (int i = 0; i < dataArray.length(); i++) {
-                        JSONObject dataItem = dataArray.getJSONObject(i);
-                        String id = dataItem.getString(BasicPacket.PACKET_ID);
-                        String path = dataItem.getString(BasicPacket.PACKET_PATH);
-                        String data = dataItem.getString(BasicPacket.PACKET_DATA);
-                        String delay = dataItem.getString(BasicPacket.PACKET_DELAY);
-
-                        Log.d(TAG, "Received Packet id: " + id);
-                        Log.d(TAG, "Path: " + path);
-
-                        receivedDataLength += data.length();
-                        queueManager.packetsReceived++;
-                        queueManager.appendToQueue(id, path, data, delay);
-                    }
-
-                    Log.d(TAG, "Received " + receivedDataLength + " bytes data from " + MAC);
-                    Log.d(TAG, "New queue size: " + QueueManager.getInstance(context).getQueueLength());
-
-                    // Create and send an ACK
-                    JSONObject ackPacket = new JSONObject();
-                    try {
-                        ackPacket.put(BasicPacket.PACKET_TYPE, BasicPacket.PACKET_TYPE_DATA_ACK);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                    btController.sendToBTDevice(MAC, ackPacket);
-                    Log.d(TAG, "Sent ACK to " + MAC);
+                case Packet.PACKET_TYPE_DATA:
+                    handleDataPacket(dataContent, MAC);
                     break;
-                case BasicPacket.PACKET_TYPE_DATA_ACK:
-                    // Handle an ACK packet
-                    Log.d(TAG, "Receive ACK");
-                    btController.stopConnection(MAC);
-                    QueueManager.getInstance(context).packetsSent++;
+                case Packet.PACKET_TYPE_DATA_ACK:
+                    handleACKPacket(MAC);
                     break;
                 default:
                     break;
             }
         } catch (JSONException e) {
+            Log.d(TAG, "Failed to parse received message");
             e.printStackTrace();
         }
+    }
+
+    // Possibly remove the dataArray. Instead just expect one warning as the PACKET_DATA entry.
+    private void handleDataPacket(JSONObject dataContent, String MAC) throws JSONException {
+        // Handling a data packet
+        // Parse, add to queue, and send ACK
+
+        QueueManager queueManager = QueueManager.getInstance(context);
+        JSONArray dataArray = dataContent.getJSONArray(Packet.PACKET_DATA);
+        int receivedDataLength = 0;
+
+        // Parse the data
+        for (int i = 0; i < dataArray.length(); i++) {
+            JSONObject dataItem = dataArray.getJSONObject(i);
+            String id = dataItem.getString(Packet.PACKET_ID);
+            String path = dataItem.getString(Packet.PACKET_PATH);
+            String data = dataItem.getString(Packet.PACKET_DATA);
+            String delay = dataItem.getString(Packet.PACKET_DELAY);
+
+            Log.d(TAG, "Received Packet id: " + id);
+            Log.d(TAG, "Path: " + path);
+
+            receivedDataLength += data.length();
+            queueManager.packetsReceived++;
+            queueManager.appendToQueue(id, path, data, delay);
+        }
+
+        Log.d(TAG, "Received " + receivedDataLength + " bytes data from " + MAC);
+        Log.d(TAG, "New queue size: " + QueueManager.getInstance(context).getQueueLength());
+
+        // Create and send an ACK
+        JSONObject ackPacket = new JSONObject();
+        try {
+            ackPacket.put(Packet.PACKET_TYPE, Packet.PACKET_TYPE_DATA_ACK);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        btController.sendToBTDevice(MAC, ackPacket);
+        Log.d(TAG, "Sent ACK to " + MAC);
+    }
+
+    private void handleACKPacket(String MAC) {
+        // Handle an ACK packet
+        Log.d(TAG, "Receive ACK");
+        btController.stopConnection(MAC);
+        QueueManager.getInstance(context).packetsSent++;
     }
 
     private class ClientConnectionTask extends AsyncTask<String, Void, Result> {
@@ -143,7 +141,7 @@ class BTMessageHandler {
             JSONObject dataPacket = new JSONObject();
 
             try {
-                dataPacket.put(BasicPacket.PACKET_TYPE, BasicPacket.PACKET_TYPE_DATA);
+                dataPacket.put(Packet.PACKET_TYPE, Packet.PACKET_TYPE_DATA);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -160,10 +158,10 @@ class BTMessageHandler {
 
                         // Parse the packet into our own
                         try {
-                            data.put(BasicPacket.PACKET_PATH, packet[0]);
-                            data.put(BasicPacket.PACKET_DATA, packet[1]);
-                            data.put(BasicPacket.PACKET_ID, packet[2]);
-                            data.put(BasicPacket.PACKET_DELAY, packet[3]);
+                            data.put(Packet.PACKET_PATH, packet[0]);
+                            data.put(Packet.PACKET_DATA, packet[1]);
+                            data.put(Packet.PACKET_ID, packet[2]);
+                            data.put(Packet.PACKET_DELAY, packet[3]);
 
                             // Add this packet to our array of packets
                             dataArray.put(data);
@@ -184,7 +182,7 @@ class BTMessageHandler {
 
             // Send (to device we received the data from?) the array of data parsed from packets
             try {
-                dataPacket.put(BasicPacket.PACKET_DATA, dataArray);
+                dataPacket.put(Packet.PACKET_DATA, dataArray);
             } catch (JSONException e) {
                 e.printStackTrace();
             }

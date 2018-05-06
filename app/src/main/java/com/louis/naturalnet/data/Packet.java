@@ -1,7 +1,7 @@
-package com.louis.naturalnet.packet;
+package com.louis.naturalnet.data;
 
 // BT Message Header
-public abstract class BasicPacket {
+public abstract class Packet {
 
 	// Format:  type|data
 	public static final String PACKET_TYPE = "type";
@@ -13,5 +13,4 @@ public abstract class BasicPacket {
 	// Data Type Identifier
 	public static final int PACKET_TYPE_DATA = 102;
 	public static final int PACKET_TYPE_DATA_ACK = 103;
-	
 }
