@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import com.louis.naturalnet.R;
+import com.louis.naturalnet.data.QueueManager;
 
 public class WarningFragment extends Fragment {
 
@@ -31,6 +32,9 @@ public class WarningFragment extends Fragment {
                 view.findViewById(R.id.warning_fragment_container).setBackgroundResource(
                         expanded ? R.drawable.yellow_rounded_fragment : R.drawable.green_rounded_fragment);
 
+                // As a test, create a warning by clicking on the warning fragment.
+                if (expanded)
+                    QueueManager.getInstance().generateWarning();
             }
         });
 

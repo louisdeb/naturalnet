@@ -9,6 +9,7 @@ import android.os.Message;
 import android.util.Log;
 import com.louis.naturalnet.data.QueueManager;
 import com.louis.naturalnet.data.Packet;
+import com.louis.naturalnet.data.Warning;
 import com.louis.naturalnet.utils.Constants;
 import com.louis.naturalnet.utils.Utils;
 import org.json.JSONArray;
@@ -24,7 +25,6 @@ class BTMessageHandler {
 
     // The BTController allows us to send data to a device through BTCom.
     private BTController btController;
-    private Context context;
 
     // Wrapper
     class Result
@@ -35,8 +35,6 @@ class BTMessageHandler {
     }
 
     BTMessageHandler(Context context) {
-        this.context = context;
-
         IntentFilter messageFilter = new IntentFilter("com.louis.naturalnet.bluetooth.MessageReceiver");
         context.registerReceiver(new MessageReceiver() {
             @Override
@@ -66,6 +64,9 @@ class BTMessageHandler {
                 case Packet.PACKET_TYPE_DATA_ACK:
                     handleACKPacket(MAC);
                     break;
+                case Packet.PACKET_TYPE_WARNING:
+                    handleWarningPacket(dataContent, MAC);
+                    break;
                 default:
                     break;
             }
@@ -80,7 +81,7 @@ class BTMessageHandler {
         // Handling a data packet
         // Parse, add to queue, and send ACK
 
-        QueueManager queueManager = QueueManager.getInstance(context);
+        QueueManager queueManager = QueueManager.getInstance();
         JSONArray dataArray = dataContent.getJSONArray(Packet.PACKET_DATA);
         int receivedDataLength = 0;
 
@@ -101,7 +102,7 @@ class BTMessageHandler {
         }
 
         Log.d(TAG, "Received " + receivedDataLength + " bytes data from " + MAC);
-        Log.d(TAG, "New queue size: " + QueueManager.getInstance(context).getQueueLength());
+        Log.d(TAG, "New queue size: " + QueueManager.getInstance().getQueueLength());
 
         // Create and send an ACK
         JSONObject ackPacket = new JSONObject();
@@ -119,14 +120,23 @@ class BTMessageHandler {
         // Handle an ACK packet
         Log.d(TAG, "Receive ACK");
         btController.stopConnection(MAC);
-        QueueManager.getInstance(context).packetsSent++;
+        QueueManager.getInstance().packetsSent++;
     }
 
+    private void handleWarningPacket(JSONObject dataContent, String MAC) {
+        Warning warning = new Warning(dataContent);
+
+        // Announce warning received (check if we are in the zone, add to queue to transmit)
+
+        // Send ACK
+    }
+
+    // This task creates a packet from the queue item and sends it to a peer.
     private class ClientConnectionTask extends AsyncTask<String, Void, Result> {
 
         // Parses packets in the queue & returns a result of their data
         protected Result doInBackground(String... strings) {
-            QueueManager queueManager = QueueManager.getInstance(context);
+            QueueManager queueManager = QueueManager.getInstance();
 
             String MAC = strings[0];
             String name = strings[1];

@@ -7,7 +7,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import com.louis.naturalnet.bluetooth.BTManager;
 import com.louis.naturalnet.bluetooth.BTScanningAlarm;
-import com.louis.naturalnet.data.QueueManager;
 import com.louis.naturalnet.fragments.NetworkFragment;
 import com.louis.naturalnet.fragments.WarningFragment;
 import com.louis.naturalnet.signal.LocationService;
@@ -66,7 +65,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         BTScanningAlarm.stopScanning(this);
-        QueueManager.getInstance(this).stop(this);
         mBTManager.unregisterBroadcastReceivers();
 
         stopLocationTracking();

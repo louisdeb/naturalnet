@@ -192,8 +192,6 @@ public class BTDeviceManager extends BroadcastReceiver {
         protected Void doInBackground(Void... voids) {
             Log.d(TAG, "# of relays " + String.valueOf(devices.size()));
 
-            queueManager.peers += devices.size();
-
             double maxScore = 0;
             NaturalNetDevice deviceToSendTo = null;
 
@@ -218,8 +216,6 @@ public class BTDeviceManager extends BroadcastReceiver {
                 // I think this remove means that we won't send the device information twice. Does doInBackground
                 // run indefinitely? Does it send the information to all devices, but in order of descending score?
                 devices.remove(deviceToSendTo);
-
-                queueManager.contacts += 1;
             }
 
             return null;

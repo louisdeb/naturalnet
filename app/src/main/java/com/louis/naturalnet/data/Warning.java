@@ -95,4 +95,8 @@ public class Warning {
 
         return obj;
     }
+
+    public String toString() {
+        return this.toJSON().toString();
+    }
 }

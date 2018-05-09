@@ -71,7 +71,7 @@ public class DeviceInformation {
     }
 
     static int getQueueLength() {
-        return QueueManager.getInstance(activity).getQueueLength();
+        return QueueManager.getInstance().getQueueLength();
     }
 
     /* Handshake parsing functions */

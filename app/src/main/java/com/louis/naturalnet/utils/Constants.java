@@ -16,9 +16,6 @@ public abstract class Constants {
 	public static double ENERGY_PENALTY_COEFF = 0.1;
 	public static final double ENERGY_PENALTY_COEFF_ON = 0.1;
 
-	public static String TAG_ACT_TEST = "test";
-	
-	public static final String DEFAULT_DEVICE_NAME = "OppNet:0:0";
 	public static final int QUEUE_DIFF = 5;
 
 	/* Bluetooth Communication Constants */
