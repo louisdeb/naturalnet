@@ -25,6 +25,10 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+//TODO: Sometimes we get a double connection where both phones become clients and servers.
+// We could just check that we don't already have a connection to the device when establishing the connection
+// or receiving a handshake.
+
 /**
  * a multi thread BT utility
  * @author fshi
@@ -125,9 +129,12 @@ class BTCom {
 
     // Send JSON data to a destination device with the MAC address.
 	synchronized void send(String MAC, JSONObject data) {
+	    Log.d(TAG, "Finding connection thread");
 		for (ConnectedThread connection : connections) {
-			if (connection.getMac().equals(MAC))
-				connection.write(data);
+			if (connection.getMac().equals(MAC)) {
+			    Log.d(TAG, "Found connection thread and sending");
+                connection.write(data);
+            }
 		}
 	}
 
@@ -475,6 +482,7 @@ class BTCom {
 			}
 		}
 
+		// TODO: Badly named?
 		// Send a non-handshake message to the BTMessageHandler.
 		private void handleMessage(Object buffer) {
             // Send the obtained bytes to the UI Activity.

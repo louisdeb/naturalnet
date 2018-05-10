@@ -8,7 +8,7 @@ import org.json.JSONObject;
 
 public class NaturalNetDevice {
 
-    private BluetoothDevice device;
+    public BluetoothDevice device;
 
     private SignalQuality signalQuality;
     private Location location;

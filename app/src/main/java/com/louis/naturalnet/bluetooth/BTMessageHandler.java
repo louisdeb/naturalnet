@@ -3,7 +3,6 @@ package com.louis.naturalnet.bluetooth;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
@@ -11,7 +10,6 @@ import com.louis.naturalnet.data.QueueManager;
 import com.louis.naturalnet.data.Packet;
 import com.louis.naturalnet.data.Warning;
 import com.louis.naturalnet.utils.Constants;
-import com.louis.naturalnet.utils.Utils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,16 +23,11 @@ class BTMessageHandler {
 
     // The BTController allows us to send data to a device through BTCom.
     private BTController btController;
-
-    // Wrapper
-    class Result
-    {
-        int length;
-        String MAC;
-        String data;
-    }
+    private Context context;
 
     BTMessageHandler(Context context) {
+        this.context = context;
+
         IntentFilter messageFilter = new IntentFilter("com.louis.naturalnet.bluetooth.MessageReceiver");
         context.registerReceiver(new MessageReceiver() {
             @Override
@@ -54,18 +47,18 @@ class BTMessageHandler {
         String MAC = bundle.getString(Constants.BT_DEVICE_MAC);
 
         try {
-            JSONObject dataContent = new JSONObject(bundle.getString(Constants.BT_DATA_CONTENT));
-            int packetType = dataContent.getInt(Packet.PACKET_TYPE);
+            JSONObject packet = new JSONObject(bundle.getString(Constants.BT_DATA_CONTENT));
+            int packetType = packet.getInt(Packet.PACKET_TYPE);
 
             switch (packetType) {
                 case Packet.PACKET_TYPE_DATA:
-                    handleDataPacket(dataContent, MAC);
+                    handleDataPacket(packet, MAC);
                     break;
                 case Packet.PACKET_TYPE_DATA_ACK:
                     handleACKPacket(MAC);
                     break;
                 case Packet.PACKET_TYPE_WARNING:
-                    handleWarningPacket(dataContent, MAC);
+                    handleWarningPacket(packet, MAC);
                     break;
                 default:
                     break;
@@ -123,15 +116,22 @@ class BTMessageHandler {
         QueueManager.getInstance().packetsSent++;
     }
 
-    private void handleWarningPacket(JSONObject dataContent, String MAC) {
-        Warning warning = new Warning(dataContent);
+    private void handleWarningPacket(JSONObject packet, String MAC) throws JSONException {
+        JSONObject warningJSON = new JSONObject(packet.getString(Packet.PACKET_DATA));
+        Warning warning = new Warning(warningJSON);
+
+        Log.d(TAG, "Received warning: " + warning.toString());
 
         // Announce warning received (check if we are in the zone, add to queue to transmit)
+        Intent warningNotification = new Intent("com.louis.naturalnet.data.WarningReceiver");
+        warningNotification.putExtra("warning", warning.toString());
+        context.sendBroadcast(warningNotification);
 
         // Send ACK
     }
 
     // This task creates a packet from the queue item and sends it to a peer.
+    /*
     private class ClientConnectionTask extends AsyncTask<String, Void, Result> {
 
         // Parses packets in the queue & returns a result of their data
@@ -200,6 +200,7 @@ class BTMessageHandler {
 
             return result;
         }
-
     }
+    */
+
 }

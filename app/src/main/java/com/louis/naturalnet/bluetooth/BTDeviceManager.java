@@ -8,9 +8,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.util.Log;
+import com.louis.naturalnet.data.Packet;
+import com.louis.naturalnet.data.QueueItem;
 import com.louis.naturalnet.data.QueueManager;
 import com.louis.naturalnet.device.NaturalNetDevice;
-import com.louis.naturalnet.energy.BatteryMonitor;
 import com.louis.naturalnet.utils.Constants;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,6 +29,7 @@ public class BTDeviceManager extends BroadcastReceiver {
     private static final String TAG = "BTBroadcastReceiver";
 
     private BTManager manager;
+    private Context context;
 
     // Timestamp to control if it is a new scan
     private long scanStartTimestamp = System.currentTimeMillis() - 100000;
@@ -44,6 +46,7 @@ public class BTDeviceManager extends BroadcastReceiver {
 
     BTDeviceManager(BTManager manager, Context context) {
         this.manager = manager;
+        this.context = context;
 
         IntentFilter handshakeFilter = new IntentFilter("com.louis.naturalnet.bluetooth.HandshakeReceiver");
         context.registerReceiver(new HandshakeReceiver() {
@@ -52,6 +55,20 @@ public class BTDeviceManager extends BroadcastReceiver {
                 handleHandshakeResponse(intent);
             }
         }, handshakeFilter);
+
+        IntentFilter warningFilter = new IntentFilter("com.louis.naturalnet.bluetooth.TempWarningReceiver");
+        context.registerReceiver(new TempWarningReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d(TAG, "Received temp warning intent");
+                QueueMonitor queueMonitor = new QueueMonitor();
+                queueMonitor.execute();
+            }
+        }, warningFilter);
+
+        // We might have to have something to trigger this execute periodically (see QueueGenerationAlarm).
+        QueueMonitor queueMonitor = new QueueMonitor();
+        queueMonitor.execute();
     }
 
     // Receives discovered devices from BluetoothAdapter scan.
@@ -173,52 +190,57 @@ public class BTDeviceManager extends BroadcastReceiver {
         }
     }
 
-    private static class ExchangeData extends AsyncTask<Void, Void, Void> {
-        BTManager btManager;
-        QueueManager queueManager;
-        BatteryMonitor batteryMonitor;
+    private void sendToBestDevice(JSONObject packet) {
+        Log.d(TAG, "Sending to best device");
+        double maxScore = 0;
+        NaturalNetDevice bestDevice = null;
+        for (NaturalNetDevice device : naturalNetDevices) {
+            double score = device.getScore();
+            // Add something to do with location decision making.
 
-        ArrayList<NaturalNetDevice> devices;
-
-        ExchangeData(BTManager btManager, QueueManager queueManager, BatteryMonitor batteryMonitor,
-                     ArrayList<NaturalNetDevice> devices) {
-            this.btManager = btManager;
-            this.queueManager = queueManager;
-            this.batteryMonitor = batteryMonitor;
-            this.devices = devices;
+            if (score > maxScore) {
+                maxScore = score;
+                bestDevice = device;
+            }
         }
 
-        @Override
+        if (bestDevice != null) {
+            Log.d(TAG, "Best device is: " + bestDevice.getAddress());
+            manager.sendToBTDevice(bestDevice.device, packet);
+        }
+    }
+
+    private class QueueMonitor extends AsyncTask<Void, Void, Void> {
+
         protected Void doInBackground(Void... voids) {
-            Log.d(TAG, "# of relays " + String.valueOf(devices.size()));
+            Log.d(TAG, "QueueMonitor running a loop");
+            QueueManager queueManager = QueueManager.getInstance();
 
-            double maxScore = 0;
-            NaturalNetDevice deviceToSendTo = null;
+            if (queueManager.getQueueLength() > 0) {
+                QueueItem item = queueManager.getFirstFromQueue();
+                JSONObject packet = new JSONObject();
 
-            // Find relay with best objective function score to send to
-            for (NaturalNetDevice device : devices) {
-
-                // The traditional OppNet objective function. We also want to include location decision making.
-                double score = device.getScore();
-
-                if (score > maxScore) {
-                    deviceToSendTo = device;
-                    maxScore = score;
+                // Create a packet out of the item.
+                if (item.dataType.equals("warning")) {
+                    try {
+                        packet.put(Packet.PACKET_TYPE, Packet.PACKET_TYPE_WARNING);
+                        packet.put(Packet.PACKET_ID, item.packetId);
+                        packet.put(Packet.PACKET_PATH, item.path);
+                        packet.put(Packet.PACKET_DELAY, item.delay);
+                        packet.put(Packet.PACKET_DATA, item.data);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
 
-            // If we found a suitable relay device and we have data to send.
-            if (deviceToSendTo != null && queueManager.getQueueLength() > 0) {
-                // btManager.connectToBTServer(deviceToSendTo, Constants.BT_CLIENT_TIMEOUT);
-                // We don't need to actually connect to the BT server, we should already have a connection. Instead
-                // we want to cause some send to the device.
-
-                // I think this remove means that we won't send the device information twice. Does doInBackground
-                // run indefinitely? Does it send the information to all devices, but in order of descending score?
-                devices.remove(deviceToSendTo);
+                sendToBestDevice(packet);
+            } else {
+                // If there was nothing to send, check again after some delay.
             }
 
             return null;
         }
+
     }
+
 }

@@ -3,6 +3,7 @@ package com.louis.naturalnet.data;
 import java.util.ArrayList;
 import java.util.Random;
 
+import android.content.Intent;
 import android.util.Log;
 
 public class QueueManager {
@@ -22,7 +23,7 @@ public class QueueManager {
 
 	public static QueueManager getInstance() {
 		if (_this == null)
-			_this = new QueueManager();
+            _this = new QueueManager();
 
 		return _this;
 	}
@@ -36,9 +37,14 @@ public class QueueManager {
         item.packetId = DEVICE_ID + String.valueOf(System.currentTimeMillis() + new Random().nextInt(1000));
         item.path.add(DEVICE_ID);
         item.data = warning.toString();
+        item.dataType = "warning";
         item.timestamp = System.currentTimeMillis();
 
         queue.add(item);
+    }
+
+    public QueueItem getFirstFromQueue() {
+	    return queue.get(0);
     }
 
 	// Called by BTMessageHandler when it receives a packet (of data). This is so that we can send the data on to another

@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import org.json.JSONObject;
 
 public class BTManager {
 
@@ -65,6 +66,10 @@ public class BTManager {
 
     void connectToBTServer(BluetoothDevice device, long timeout) {
         mBTController.connectToBTServer(device, timeout);
+    }
+
+    void sendToBTDevice(BluetoothDevice device, JSONObject packet) {
+        mBTController.sendToBTDevice(device.getAddress(), packet);
     }
 
     private void alertBluetoothNotSupported(Activity activity) {
