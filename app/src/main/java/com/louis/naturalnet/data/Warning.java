@@ -24,17 +24,17 @@ public class Warning {
     public static String WARNING_MESSAGE = "warningMessage";
 
     private int warningId;
-    private String issuer;
-    private Date issueTime;
-    private String type;
-    private String magnitude;
-    private Date impactTime;
+    public String issuer;
+    public Date issueTime;
+    public String type;
+    public String magnitude;
+    public Date impactTime;
     private long lonStart;
     private long latStart;
     private long lonEnd;
     private long latEnd;
-    private String recommendedActions;
-    private String message;
+    public String recommendedActions;
+    public String message;
 
     // Create a test warning.
     public Warning() {
@@ -72,7 +72,7 @@ public class Warning {
         }
     }
 
-    public JSONObject toJSON() {
+    private JSONObject toJSON() {
         JSONObject obj = new JSONObject();
 
         try {

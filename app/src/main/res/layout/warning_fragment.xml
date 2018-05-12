@@ -5,27 +5,18 @@
               android:background="@drawable/green_rounded_fragment"
               android:clipToPadding="true"
               android:layout_width="match_parent"
-              android:layout_height="70dp">
+              android:layout_height="wrap_content">
 
     <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content">
+
         <LinearLayout
                 android:id="@+id/warning_title_layout"
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-            <!-- Good Status Icon -->
-            <ImageView
-                    android:id="@+id/warning_tick"
-                    android:layout_width="10dp"
-                    android:layout_height="35dp"
-                    android:layout_gravity="center_vertical"
-                    android:tint="@android:color/white"
-                    app:srcCompat="@drawable/ic_tick"
-                    android:layout_weight="0.19"/>
+                android:layout_height="70dp">
 
             <!-- Warning Status Icon -->
             <ImageView
@@ -34,13 +25,12 @@
                     android:layout_height="35dp"
                     android:layout_gravity="center_vertical"
                     android:tint="@android:color/white"
-                    android:visibility="gone"
-                    app:srcCompat="@drawable/ic_warning"
-                    android:layout_weight="0.19"/>
+                    app:srcCompat="@drawable/ic_tick"
+                    android:layout_weight="0.19" />
 
-            <!-- Good Status Text-->
+            <!-- Warning Status Text-->
             <TextView
-                    android:id="@+id/no_warning_title"
+                    android:id="@+id/warning_title"
                     android:text="@string/no_warnings"
                     android:textColor="@android:color/white"
                     style="@android:style/TextAppearance.Large"
@@ -50,20 +40,170 @@
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1"/>
 
-            <!-- Warning Status Text-->
+        </LinearLayout>
+
+        <!-- Warning Content -->
+        <!-- Default Visibility: Gone -->
+        <LinearLayout
+                android:id="@+id/warning_content_layout"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:visibility="gone">
+
             <TextView
-                    android:id="@+id/warning_title"
-                    android:text="@string/warning_received"
+                    android:id="@+id/issued_warning_title"
                     android:textColor="@android:color/white"
                     style="@android:style/TextAppearance.Large"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:visibility="gone"
-                    android:gravity="center_vertical"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"/>
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:layout_gravity="center_horizontal"/>
 
-            <!-- Add dropdown icon here, which appears when there is a warning -->
+            <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="30dp"
+                    android:layout_marginEnd="30dp">
+
+                <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1.5dip"
+                        android:layout_marginTop="3dp"
+                        android:layout_marginBottom="3dp"
+                        android:alpha="0.8"
+                        android:background="#fff"/>
+
+                <TextView
+                        android:id="@+id/issued_warning_message"
+                        android:textColor="@android:color/white"
+                        style="@android:style/TextAppearance.Medium"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1.5dip"
+                        android:layout_marginTop="3dp"
+                        android:layout_marginBottom="3dp"
+                        android:alpha="0.8"
+                        android:background="#fff"/>
+
+                <TextView
+                        android:id="@+id/issued_warning_actions"
+                        android:textColor="@android:color/white"
+                        style="@android:style/TextAppearance.Medium"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1.5dip"
+                        android:layout_marginTop="3dp"
+                        android:layout_marginBottom="3dp"
+                        android:alpha="0.8"
+                        android:background="#fff"/>
+
+                <LinearLayout
+                        android:id="@+id/warning_issuer"
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                    <TextView
+                            android:id="@+id/issued_by_label"
+                            android:text="@string/issued_by_label"
+                            android:textColor="@android:color/white"
+                            style="@android:style/TextAppearance.Small"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"/>
+
+                    <TextView
+                            android:id="@+id/issued_by"
+                            android:textColor="@android:color/white"
+                            style="@android:style/TextAppearance.Small"
+                            android:layout_marginStart="2dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                        android:id="@+id/warning_issue_time"
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                    <TextView
+                            android:id="@+id/issue_time_label"
+                            android:text="@string/issue_time_label"
+                            android:textColor="@android:color/white"
+                            style="@android:style/TextAppearance.Small"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"/>
+
+                    <TextView
+                            android:id="@+id/issued_at"
+                            android:textColor="@android:color/white"
+                            style="@android:style/TextAppearance.Small"
+                            android:layout_marginStart="2dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                        android:id="@+id/warning_magnitude_wrapper"
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                    <TextView
+                            android:id="@+id/warning_magnitude_label"
+                            android:text="@string/warning_magnitude_label"
+                            android:textColor="@android:color/white"
+                            style="@android:style/TextAppearance.Small"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"/>
+
+                    <TextView
+                            android:id="@+id/warning_magnitude"
+                            android:textColor="@android:color/white"
+                            style="@android:style/TextAppearance.Small"
+                            android:layout_marginStart="2dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:gravity="center_horizontal"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                        android:id="@+id/warning_impact_time_wrapper"
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                    <TextView
+                            android:id="@+id/warning_impact_time_label"
+                            android:text="@string/warning_impact_time_label"
+                            android:textColor="@android:color/white"
+                            style="@android:style/TextAppearance.Small"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"/>
+
+                    <TextView
+                            android:id="@+id/warning_impact_time"
+                            android:textColor="@android:color/white"
+                            style="@android:style/TextAppearance.Small"
+                            android:layout_marginStart="2dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>
