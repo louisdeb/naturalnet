@@ -25,14 +25,13 @@ public class WarningFragment extends Fragment {
 
     private boolean expanded = false;
     private Warning warning = null;
-    private Context context;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.warning_fragment, container, false);
 
         // Not the nicest way of getting the context. If we upgrade from API 21 to 23 we can use Fragment.getContext().
-        context = view.getContext();
+        Context context = view.getContext();
 
         final LinearLayout title = view.findViewById(R.id.warning_title_layout);
         title.setOnClickListener(new View.OnClickListener() {
@@ -76,10 +75,6 @@ public class WarningFragment extends Fragment {
         if (!hasWarning) {
             // For our test implementation, issue a warning.
             warning = QueueManager.getInstance().generateWarning();
-
-            // As part of a test, alert the BTDeviceManager of this new warning.
-            Intent warningIntent = new Intent("com.louis.naturalnet.bluetooth.TempWarningReceiver");
-            context.sendBroadcast(warningIntent);
             title.callOnClick();
 
             // If there's no warning, perform no action.

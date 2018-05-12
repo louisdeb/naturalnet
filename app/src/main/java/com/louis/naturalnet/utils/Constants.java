@@ -18,6 +18,8 @@ public abstract class Constants {
 
 	public static final int QUEUE_DIFF = 5;
 
+	public static final int QUEUE_MONITOR_INTERVAL = 10000;
+
 	/* Bluetooth Communication Constants */
 
     // Default UUID	list.

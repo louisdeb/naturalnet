@@ -5,8 +5,6 @@ import java.util.Random;
 
 public class QueueManager {
 
-	private final static String TAG = "QueueManager";
-
 	private static String DEVICE_ID = "TEST_DEVICE_ID";
 
 	private static volatile ArrayList<QueueItem> queue = new ArrayList<>();

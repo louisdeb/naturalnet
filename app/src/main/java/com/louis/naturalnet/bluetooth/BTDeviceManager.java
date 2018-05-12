@@ -17,6 +17,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /*
     This class handles discovering and saving bluetooth discoveredDevices.
@@ -29,7 +31,6 @@ public class BTDeviceManager extends BroadcastReceiver {
     private static final String TAG = "BTBroadcastReceiver";
 
     private BTManager manager;
-    private Context context;
 
     // Timestamp to control if it is a new scan
     private long scanStartTimestamp = System.currentTimeMillis() - 100000;
@@ -46,7 +47,6 @@ public class BTDeviceManager extends BroadcastReceiver {
 
     BTDeviceManager(BTManager manager, Context context) {
         this.manager = manager;
-        this.context = context;
 
         IntentFilter handshakeFilter = new IntentFilter("com.louis.naturalnet.bluetooth.HandshakeReceiver");
         context.registerReceiver(new HandshakeReceiver() {
@@ -56,19 +56,8 @@ public class BTDeviceManager extends BroadcastReceiver {
             }
         }, handshakeFilter);
 
-        IntentFilter warningFilter = new IntentFilter("com.louis.naturalnet.bluetooth.TempWarningReceiver");
-        context.registerReceiver(new TempWarningReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Log.d(TAG, "Received temp warning intent");
-                QueueMonitor queueMonitor = new QueueMonitor();
-                queueMonitor.execute();
-            }
-        }, warningFilter);
-
-        // We might have to have something to trigger this execute periodically (see QueueGenerationAlarm).
-        QueueMonitor queueMonitor = new QueueMonitor();
-        queueMonitor.execute();
+        // Start the QueueMonitor with periodic run time.
+        new Timer().scheduleAtFixedRate(new QueueMonitor(), 0, Constants.QUEUE_MONITOR_INTERVAL);
     }
 
     // Receives discovered devices from BluetoothAdapter scan.
@@ -210,10 +199,11 @@ public class BTDeviceManager extends BroadcastReceiver {
         }
     }
 
-    private class QueueMonitor extends AsyncTask<Void, Void, Void> {
+    private class QueueMonitor extends TimerTask {
 
-        protected Void doInBackground(Void... voids) {
-            Log.d(TAG, "QueueMonitor running a loop");
+        @Override
+        public void run() {
+            Log.d(TAG, "QueueMonitor instance running");
             QueueManager queueManager = QueueManager.getInstance();
 
             if (queueManager.getQueueLength() > 0) {
@@ -237,8 +227,6 @@ public class BTDeviceManager extends BroadcastReceiver {
             } else {
                 // If there was nothing to send, check again after some delay.
             }
-
-            return null;
         }
 
     }

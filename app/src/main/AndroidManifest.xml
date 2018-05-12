@@ -34,20 +34,14 @@
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <!-- Accepts URIs that begin with "http://www.example.com/gizmos” -->
-                <data
-                        android:host="token"
-                        android:scheme="naturalnet" />
+                <data android:host="token" android:scheme="naturalnet" />
             </intent-filter>
 
         </activity>
 
         <service android:enabled="true" android:name="com.louis.naturalnet.signal.LocationService" />
 
-        <receiver
-                android:name=".bluetooth.BTScanningAlarm"
-                android:enabled="true" >
-        </receiver>
+        <receiver android:enabled="true" android:name=".bluetooth.BTScanningAlarm" />
 
     </application>
 

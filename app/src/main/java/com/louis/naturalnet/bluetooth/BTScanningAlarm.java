@@ -25,7 +25,7 @@ public class BTScanningAlarm extends BroadcastReceiver {
 	private static BTController mBTController = null;
 
 	// We require a zero argument constructor to avoid an InstantiationException
-	BTScanningAlarm() {}
+	public BTScanningAlarm() {}
 
 	// Starts the alarm, need to give it a user defined bluetooth controller (define handler e.g.)
 	BTScanningAlarm(Context context, BTController btController) {
