@@ -4,8 +4,6 @@ import android.content.Context;
 import org.json.JSONObject;
 
 import android.bluetooth.BluetoothDevice;
-import android.os.Handler;
-import android.os.Messenger;
 
 /**
  * controller to manage interface of bluetooth
@@ -14,37 +12,37 @@ import android.os.Messenger;
  */
 public class BTController {
 
-	private BTCom btComms;
+	private BTCom btComm;
 
 	BTController(Context context) {
-		btComms = BTCom.getInstance(context);
+		btComm = BTCom.getInstance(context);
 	}
 
 	void startBTScan(long duration) {
-		btComms.startScan(duration);
+		btComm.startScan(duration);
 	}
 
 	void startBTServer() {
-		btComms.startServer();
+		btComm.startServer();
 	}
 
 	public void stopBTServer() {
-		btComms.stopServer();
+		btComm.stopServer();
 	}
 
 	void connectToBTServer(BluetoothDevice device, long timeout) {
-		btComms.connect(device, timeout);
+		btComm.connect(device, timeout);
 	}
 
 	void sendToBTDevice(String mac, JSONObject data) {
-		btComms.send(mac, data);
+		btComm.send(mac, data);
 	}
 
 	void sendToBTDevice(String mac, String data) {
-		btComms.send(mac, data);
+		btComm.send(mac, data);
 	}
 
 	void stopConnection(String mac) {
-		btComms.stopConnection(mac);
+		btComm.stopConnection(mac);
 	}	
 }

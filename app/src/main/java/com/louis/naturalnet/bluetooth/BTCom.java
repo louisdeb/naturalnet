@@ -129,10 +129,8 @@ class BTCom {
 
     // Send JSON data to a destination device with the MAC address.
 	synchronized void send(String MAC, JSONObject data) {
-	    Log.d(TAG, "Finding connection thread");
 		for (ConnectedThread connection : connections) {
 			if (connection.getMac().equals(MAC)) {
-			    Log.d(TAG, "Found connection thread and sending");
                 connection.write(data);
             }
 		}

@@ -6,11 +6,10 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
-import com.louis.naturalnet.data.QueueManager;
 import com.louis.naturalnet.data.Packet;
+import com.louis.naturalnet.data.QueueManager;
 import com.louis.naturalnet.data.Warning;
 import com.louis.naturalnet.utils.Constants;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -48,18 +47,23 @@ class BTMessageHandler {
 
         try {
             JSONObject packet = new JSONObject(bundle.getString(Constants.BT_DATA_CONTENT));
-            int packetType = packet.getInt(Packet.PACKET_TYPE);
+            int packetType = packet.getInt(Packet.TYPE);
 
             switch (packetType) {
+                case Packet.TYPE_WARNING:
+                    handleWarningPacket(packet, MAC);
+                    break;
+                case Packet.TYPE_WARNING_ACK:
+                    handleWarningACK(packet, MAC);
+                    break;
+                /* These are legacy OppNet packet types.
                 case Packet.PACKET_TYPE_DATA:
                     handleDataPacket(packet, MAC);
                     break;
                 case Packet.PACKET_TYPE_DATA_ACK:
                     handleACKPacket(MAC);
                     break;
-                case Packet.PACKET_TYPE_WARNING:
-                    handleWarningPacket(packet, MAC);
-                    break;
+                */
                 default:
                     break;
             }
@@ -69,22 +73,52 @@ class BTMessageHandler {
         }
     }
 
-    // Possibly remove the dataArray. Instead just expect one warning as the PACKET_DATA entry.
+    private void handleWarningPacket(JSONObject packet, String MAC) throws JSONException {
+        JSONObject warningJSON = new JSONObject(packet.getString(Packet.DATA));
+        Warning warning = new Warning(warningJSON);
+
+        Log.d(TAG, "Received warning: " + warning.toString());
+
+        // Announce warning received (check if we are in the zone, add to queue to transmit).
+        Intent warningNotification = new Intent("com.louis.naturalnet.data.WarningReceiver");
+        warningNotification.putExtra("warning", warning.toString());
+        context.sendBroadcast(warningNotification);
+
+        // Add the warning to our queue.
+        QueueManager.getInstance().addPacketToQueue(packet);
+
+        // Send ACK.
+        JSONObject ack = new JSONObject();
+        ack.put(Packet.TYPE, Packet.TYPE_WARNING_ACK);
+        ack.put(Packet.DATA, warning.warningId);
+        btController.sendToBTDevice(MAC, ack);
+    }
+
+    private void handleWarningACK(JSONObject packet, String MAC) throws JSONException {
+        int warningId = packet.getInt(Packet.DATA);
+        QueueManager.getInstance().removeFromQueue(warningId);
+
+        // We could also increase the score of the destination device as we have successfully transferred a warning
+        // to it.
+    }
+
+    /*
+    // Possibly remove the dataArray. Instead just expect one warning as the DATA entry.
     private void handleDataPacket(JSONObject dataContent, String MAC) throws JSONException {
         // Handling a data packet
         // Parse, add to queue, and send ACK
 
         QueueManager queueManager = QueueManager.getInstance();
-        JSONArray dataArray = dataContent.getJSONArray(Packet.PACKET_DATA);
+        JSONArray dataArray = dataContent.getJSONArray(Packet.DATA);
         int receivedDataLength = 0;
 
         // Parse the data
         for (int i = 0; i < dataArray.length(); i++) {
             JSONObject dataItem = dataArray.getJSONObject(i);
-            String id = dataItem.getString(Packet.PACKET_ID);
-            String path = dataItem.getString(Packet.PACKET_PATH);
-            String data = dataItem.getString(Packet.PACKET_DATA);
-            String delay = dataItem.getString(Packet.PACKET_DELAY);
+            String id = dataItem.getString(Packet.ID);
+            String path = dataItem.getString(Packet.PATH);
+            String data = dataItem.getString(Packet.DATA);
+            String delay = dataItem.getString(Packet.DELAY);
 
             Log.d(TAG, "Received Packet id: " + id);
             Log.d(TAG, "Path: " + path);
@@ -100,7 +134,7 @@ class BTMessageHandler {
         // Create and send an ACK
         JSONObject ackPacket = new JSONObject();
         try {
-            ackPacket.put(Packet.PACKET_TYPE, Packet.PACKET_TYPE_DATA_ACK);
+            ackPacket.put(Packet.TYPE, Packet.PACKET_TYPE_DATA_ACK);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -115,20 +149,7 @@ class BTMessageHandler {
         btController.stopConnection(MAC);
         QueueManager.getInstance().packetsSent++;
     }
-
-    private void handleWarningPacket(JSONObject packet, String MAC) throws JSONException {
-        JSONObject warningJSON = new JSONObject(packet.getString(Packet.PACKET_DATA));
-        Warning warning = new Warning(warningJSON);
-
-        Log.d(TAG, "Received warning: " + warning.toString());
-
-        // Announce warning received (check if we are in the zone, add to queue to transmit)
-        Intent warningNotification = new Intent("com.louis.naturalnet.data.WarningReceiver");
-        warningNotification.putExtra("warning", warning.toString());
-        context.sendBroadcast(warningNotification);
-
-        // Send ACK
-    }
+    */
 
     // This task creates a packet from the queue item and sends it to a peer.
     /*
@@ -151,7 +172,7 @@ class BTMessageHandler {
             JSONObject dataPacket = new JSONObject();
 
             try {
-                dataPacket.put(Packet.PACKET_TYPE, Packet.PACKET_TYPE_DATA);
+                dataPacket.put(Packet.TYPE, Packet.PACKET_TYPE_DATA);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -168,10 +189,10 @@ class BTMessageHandler {
 
                         // Parse the packet into our own
                         try {
-                            data.put(Packet.PACKET_PATH, packet[0]);
-                            data.put(Packet.PACKET_DATA, packet[1]);
-                            data.put(Packet.PACKET_ID, packet[2]);
-                            data.put(Packet.PACKET_DELAY, packet[3]);
+                            data.put(Packet.PATH, packet[0]);
+                            data.put(Packet.DATA, packet[1]);
+                            data.put(Packet.ID, packet[2]);
+                            data.put(Packet.DELAY, packet[3]);
 
                             // Add this packet to our array of packets
                             dataArray.put(data);
@@ -192,7 +213,7 @@ class BTMessageHandler {
 
             // Send (to device we received the data from?) the array of data parsed from packets
             try {
-                dataPacket.put(Packet.PACKET_DATA, dataArray);
+                dataPacket.put(Packet.DATA, dataArray);
             } catch (JSONException e) {
                 e.printStackTrace();
             }

@@ -23,7 +23,7 @@ public class Warning {
     public static String WARNING_RECOMMENDED_ACTIONS = "recommendedActions";
     public static String WARNING_MESSAGE = "warningMessage";
 
-    private int warningId;
+    public int warningId;
     public String issuer;
     public Date issueTime;
     public String type;

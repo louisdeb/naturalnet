@@ -180,7 +180,7 @@ public class BTDeviceManager extends BroadcastReceiver {
     }
 
     private void sendToBestDevice(JSONObject packet) {
-        Log.d(TAG, "Sending to best device");
+        Log.d(TAG, "Finding best device");
         double maxScore = 0;
         NaturalNetDevice bestDevice = null;
         for (NaturalNetDevice device : naturalNetDevices) {
@@ -194,8 +194,11 @@ public class BTDeviceManager extends BroadcastReceiver {
         }
 
         if (bestDevice != null) {
-            Log.d(TAG, "Best device is: " + bestDevice.getAddress());
+            Log.d(TAG, "Sending to device: " + bestDevice.getAddress());
             manager.sendToBTDevice(bestDevice.device, packet);
+        } else {
+            Log.d(TAG, "Got no best device");
+            Log.d(TAG, "naturalNetDevices: " + naturalNetDevices.toString());
         }
     }
 
@@ -213,19 +216,18 @@ public class BTDeviceManager extends BroadcastReceiver {
                 // Create a packet out of the item.
                 if (item.dataType.equals("warning")) {
                     try {
-                        packet.put(Packet.PACKET_TYPE, Packet.PACKET_TYPE_WARNING);
-                        packet.put(Packet.PACKET_ID, item.packetId);
-                        packet.put(Packet.PACKET_PATH, item.path);
-                        packet.put(Packet.PACKET_DELAY, item.delay);
-                        packet.put(Packet.PACKET_DATA, item.data);
+                        packet.put(Packet.TYPE, Packet.TYPE_WARNING);
+                        packet.put(Packet.ID, item.packetId);
+                        packet.put(Packet.PATH, item.path);
+                        packet.put(Packet.DELAY, item.delay);
+                        packet.put(Packet.DATA, item.data);
+                        packet.put(Packet.TIMESTAMP, item.timestamp);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
                 }
 
                 sendToBestDevice(packet);
-            } else {
-                // If there was nothing to send, check again after some delay.
             }
         }
 

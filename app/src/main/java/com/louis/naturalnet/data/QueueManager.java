@@ -1,5 +1,9 @@
 package com.louis.naturalnet.data;
 
+import android.util.Log;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -8,9 +12,6 @@ public class QueueManager {
 	private static String DEVICE_ID = "TEST_DEVICE_ID";
 
 	private static volatile ArrayList<QueueItem> queue = new ArrayList<>();
-
-	public int packetsReceived = 0;
-	public int packetsSent = 0;
 
 	private static QueueManager _this = null;
 
@@ -22,6 +23,14 @@ public class QueueManager {
 
 		return _this;
 	}
+
+    public QueueItem getFirstFromQueue() {
+        return queue.get(0);
+    }
+
+    public synchronized int getQueueLength() {
+        return queue.size();
+    }
 
 	// Create a warning and add it to the queue. Creates a test warning so we can study propagation of the packet
     // through the network.
@@ -40,38 +49,31 @@ public class QueueManager {
         return warning;
     }
 
-    public QueueItem getFirstFromQueue() {
-	    return queue.get(0);
+    public void addPacketToQueue(JSONObject packet) throws JSONException {
+        QueueItem item = new QueueItem();
+
+        item.packetId = packet.getString(Packet.ID);
+        // item.path = new ArrayList<>(packet.get(Packet.PATH));
+        item.data = packet.getString(Packet.DATA);
+        item.dataType = packet.getString(Packet.TYPE);
+        item.timestamp = packet.getLong(Packet.TIMESTAMP);
+
+        queue.add(item);
     }
 
-	// Called by BTMessageHandler when it receives a packet (of data). This is so that we can send the data on to another
-    // device.
-	public void appendToQueue(String packetId, String path, String data, String delay) {
-        QueueItem qItem = new QueueItem();
-
-        String[] IDs = path.split(",");
-        String[] delays = delay.split(",");
-        boolean hasLoop = false;
-
-        for (int i = 0; i < IDs.length; i++) {
-            if (IDs[i].equalsIgnoreCase(DEVICE_ID)) {
-                hasLoop = true;
-                break;
+    public void removeFromQueue(int warningId) {
+	    Log.d("QueueManager", "Removing packet from q");
+	    for (QueueItem item : queue) {
+	        try {
+                Warning warning = new Warning(new JSONObject(item.data));
+                if (warning.warningId == warningId) {
+                    queue.remove(item);
+                    Log.d("QueueManager", "Removed");
+                }
+            } catch (JSONException e) {
+	            // Data was not a warning item.
+                e.printStackTrace();
             }
-            qItem.path.add(IDs[i]);
-            qItem.delay.add(Long.parseLong(delays[i]));
-        }
-
-        if (!hasLoop) {
-            qItem.path.add(DEVICE_ID);
-            qItem.packetId = packetId;
-            qItem.data = data;
-            qItem.timestamp = System.currentTimeMillis();
-            queue.add(qItem);
         }
     }
-
-	public synchronized int getQueueLength() {
-		return queue.size();
-	}
 }
