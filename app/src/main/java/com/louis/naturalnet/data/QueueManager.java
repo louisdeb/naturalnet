@@ -38,10 +38,12 @@ public class QueueManager {
         QueueItem item = new QueueItem();
         Warning warning = new Warning();
 
+        // TODO: We could instead use the devices MAC address as the device id.
+
         item.packetId = DEVICE_ID + String.valueOf(System.currentTimeMillis() + new Random().nextInt(1000));
-        item.path.add(DEVICE_ID);
+        item.path = DEVICE_ID;
         item.data = warning.toString();
-        item.dataType = "warning";
+        item.dataType = Packet.TYPE_WARNING;
         item.timestamp = System.currentTimeMillis();
 
         queue.add(item);
@@ -52,17 +54,20 @@ public class QueueManager {
     public void addPacketToQueue(JSONObject packet) throws JSONException {
         QueueItem item = new QueueItem();
 
+        Log.d("QueueManager", "Adding packet to queue: " + packet.toString());
+
         item.packetId = packet.getString(Packet.ID);
-        // item.path = new ArrayList<>(packet.get(Packet.PATH));
+        item.path = packet.getString(Packet.PATH);
+        // item.addToPath(); Add our MAC
         item.data = packet.getString(Packet.DATA);
-        item.dataType = packet.getString(Packet.TYPE);
+        item.dataType = packet.getInt(Packet.TYPE);
         item.timestamp = packet.getLong(Packet.TIMESTAMP);
 
         queue.add(item);
     }
 
     public void removeFromQueue(int warningId) {
-	    Log.d("QueueManager", "Removing packet from q");
+	    Log.d("QueueManager", "Removing packet from queue");
 	    for (QueueItem item : queue) {
 	        try {
                 Warning warning = new Warning(new JSONObject(item.data));

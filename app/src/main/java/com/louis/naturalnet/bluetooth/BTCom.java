@@ -448,6 +448,7 @@ class BTCom {
                     try {
                         JSONObject metadata = new JSONObject(buffer.toString());
                         if ((boolean) metadata.get("handshake")) {
+                            Log.d(TAG, "Received handshake message from client: " + metadata.toString());
                             // Announce that the client has received a handshake from the server.
                             Intent handshakeIntent = new Intent("com.louis.naturalnet.bluetooth.HandshakeReceiver");
                             handshakeIntent.putExtra("connected", true);

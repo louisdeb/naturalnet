@@ -133,6 +133,7 @@ public class BTDeviceManager extends BroadcastReceiver {
                 NaturalNetDevice netDevice = new NaturalNetDevice(device, metadata);
                 handshakeReceivedMetadata(netDevice);
             } catch (JSONException e) {
+                Log.d(TAG, "Failed to parse handshake intent");
                 e.printStackTrace();
             }
         } else {
@@ -187,7 +188,7 @@ public class BTDeviceManager extends BroadcastReceiver {
             double score = device.getScore();
             // Add something to do with location decision making.
 
-            if (score > maxScore) {
+            if (bestDevice == null || score > maxScore) {
                 maxScore = score;
                 bestDevice = device;
             }
@@ -198,7 +199,6 @@ public class BTDeviceManager extends BroadcastReceiver {
             manager.sendToBTDevice(bestDevice.device, packet);
         } else {
             Log.d(TAG, "Got no best device");
-            Log.d(TAG, "naturalNetDevices: " + naturalNetDevices.toString());
         }
     }
 
@@ -214,7 +214,7 @@ public class BTDeviceManager extends BroadcastReceiver {
                 JSONObject packet = new JSONObject();
 
                 // Create a packet out of the item.
-                if (item.dataType.equals("warning")) {
+                if (item.dataType == Packet.TYPE_WARNING) {
                     try {
                         packet.put(Packet.TYPE, Packet.TYPE_WARNING);
                         packet.put(Packet.ID, item.packetId);
