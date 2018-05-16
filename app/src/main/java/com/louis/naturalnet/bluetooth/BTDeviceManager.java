@@ -11,6 +11,7 @@ import android.util.Log;
 import com.louis.naturalnet.data.Packet;
 import com.louis.naturalnet.data.QueueItem;
 import com.louis.naturalnet.data.QueueManager;
+import com.louis.naturalnet.data.Warning;
 import com.louis.naturalnet.device.NaturalNetDevice;
 import com.louis.naturalnet.utils.Constants;
 import org.json.JSONException;
@@ -180,7 +181,7 @@ public class BTDeviceManager extends BroadcastReceiver {
         }
     }
 
-    private void sendToBestDevice(JSONObject packet, String path) {
+    private void sendToBestDevice(JSONObject packet, String path, JSONObject destination) {
         Log.d(TAG, "Finding best device");
         double maxScore = 0;
         NaturalNetDevice bestDevice = null;
@@ -189,8 +190,7 @@ public class BTDeviceManager extends BroadcastReceiver {
             if (path.contains(device.getAddress()))
                 continue;
 
-            double score = device.getScore();
-            // Add something to do with location decision making.
+            double score = device.getScore(destination);
 
             if (bestDevice == null || score > maxScore) {
                 maxScore = score;
@@ -217,6 +217,8 @@ public class BTDeviceManager extends BroadcastReceiver {
                 QueueItem item = queueManager.getFirstFromQueue();
                 JSONObject packet = new JSONObject();
 
+                JSONObject destination = null;
+
                 // Create a packet out of the item.
                 if (item.dataType == Packet.TYPE_WARNING) {
                     try {
@@ -226,12 +228,19 @@ public class BTDeviceManager extends BroadcastReceiver {
                         packet.put(Packet.DELAY, item.delay);
                         packet.put(Packet.DATA, item.data);
                         packet.put(Packet.TIMESTAMP, item.timestamp);
+
+                        destination = new JSONObject();
+                        JSONObject warning = new JSONObject(item.data);
+                        destination.put(Warning.WARNING_LON_START, warning.getLong(Warning.WARNING_LON_START));
+                        destination.put(Warning.WARNING_LAT_START, warning.getLong(Warning.WARNING_LAT_START));
+                        destination.put(Warning.WARNING_LON_END, warning.getLong(Warning.WARNING_LON_END));
+                        destination.put(Warning.WARNING_LAT_END, warning.getLong(Warning.WARNING_LAT_END));
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
                 }
 
-                sendToBestDevice(packet, item.path);
+                sendToBestDevice(packet, item.path, destination);
             }
         }
 
