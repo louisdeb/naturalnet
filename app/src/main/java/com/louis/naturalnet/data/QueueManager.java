@@ -1,6 +1,7 @@
 package com.louis.naturalnet.data;
 
 import android.util.Log;
+import com.louis.naturalnet.utils.Constants;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -8,8 +9,6 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class QueueManager {
-
-	private static String DEVICE_ID = "TEST_DEVICE_ID";
 
 	private static volatile ArrayList<QueueItem> queue = new ArrayList<>();
 
@@ -38,10 +37,8 @@ public class QueueManager {
         QueueItem item = new QueueItem();
         Warning warning = new Warning();
 
-        // TODO: We could instead use the devices MAC address as the device id.
-
-        item.packetId = DEVICE_ID + String.valueOf(System.currentTimeMillis() + new Random().nextInt(1000));
-        item.path = DEVICE_ID;
+        item.packetId = Constants.MAC + String.valueOf(System.currentTimeMillis() + new Random().nextInt(1000));
+        item.path = Constants.MAC;
         item.data = warning.toString();
         item.dataType = Packet.TYPE_WARNING;
         item.timestamp = System.currentTimeMillis();
@@ -58,10 +55,12 @@ public class QueueManager {
 
         item.packetId = packet.getString(Packet.ID);
         item.path = packet.getString(Packet.PATH);
-        // item.addToPath(); Add our MAC
         item.data = packet.getString(Packet.DATA);
         item.dataType = packet.getInt(Packet.TYPE);
         item.timestamp = packet.getLong(Packet.TIMESTAMP);
+
+        // Add our MAC address to the packet's path.
+        item.addToPath(Constants.MAC);
 
         queue.add(item);
     }

@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import com.louis.naturalnet.utils.Constants;
 import org.json.JSONObject;
 
 public class BTManager {
@@ -51,6 +52,9 @@ public class BTManager {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             activity.startActivityForResult(enableBtIntent, REQUEST_BT_ENABLE);
         } else {
+            // Store our MAC address so we can use it for packet pathing.
+            Constants.MAC = mBluetoothAdapter.getAddress();
+
             // Start BT utils once we have an enabled BT adapter
             BTMessageHandler handler = new BTMessageHandler(context);
             mBTController = new BTController(context);

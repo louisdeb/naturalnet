@@ -22,7 +22,8 @@ public abstract class Constants {
 
 	/* Bluetooth Communication Constants */
 
-    // Default UUID	list.
+    public static String MAC;
+
     // What is the merit for a UUID such as this as opposed to something like 'NaturalNet'?
     public static UUID APP_UUID = UUID.fromString("8113ac40-438f-11e1-b86c-0800200c9a60");
 

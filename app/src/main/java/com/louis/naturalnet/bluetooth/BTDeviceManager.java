@@ -180,11 +180,15 @@ public class BTDeviceManager extends BroadcastReceiver {
         }
     }
 
-    private void sendToBestDevice(JSONObject packet) {
+    private void sendToBestDevice(JSONObject packet, String path) {
         Log.d(TAG, "Finding best device");
         double maxScore = 0;
         NaturalNetDevice bestDevice = null;
         for (NaturalNetDevice device : naturalNetDevices) {
+            // If this device has already received the packet, do not try to resend it.
+            if (path.contains(device.getAddress()))
+                continue;
+
             double score = device.getScore();
             // Add something to do with location decision making.
 
@@ -227,7 +231,7 @@ public class BTDeviceManager extends BroadcastReceiver {
                     }
                 }
 
-                sendToBestDevice(packet);
+                sendToBestDevice(packet, item.path);
             }
         }
 
