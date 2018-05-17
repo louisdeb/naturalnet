@@ -16,10 +16,10 @@ public class Warning {
     public static String WARNING_TYPE = "type";
     public static String WARNING_MAGNITUDE = "magnitude";
     public static String WARNING_IMPACT_TIME = "impactTime";
-    public static String WARNING_LON_START = "lonStart";
     public static String WARNING_LAT_START = "latStart";
-    public static String WARNING_LON_END = "lonEnd";
+    public static String WARNING_LON_START = "lonStart";
     public static String WARNING_LAT_END = "latEnd";
+    public static String WARNING_LON_END = "lonEnd";
     public static String WARNING_RECOMMENDED_ACTIONS = "recommendedActions";
     public static String WARNING_MESSAGE = "warningMessage";
 
@@ -29,10 +29,10 @@ public class Warning {
     public String type;
     public String magnitude;
     public Date impactTime;
-    private long lonStart;
-    private long latStart;
-    private long lonEnd;
-    private long latEnd;
+    private double latStart;
+    private double lonStart;
+    private double latEnd;
+    private double lonEnd;
     public String recommendedActions;
     public String message;
 
@@ -44,10 +44,10 @@ public class Warning {
         type = "Swarm of wasps";
         magnitude = "1000";
         impactTime = new Date(issueTime.getTime() + (5 * 60000));
-        lonStart = 0;
-        latStart = 0;
-        lonEnd = 1;
-        latEnd = 1;
+        latStart = 51.538882;
+        lonStart = -0.161500;
+        latEnd = 51.537620;
+        lonEnd = -0.155266;
         recommendedActions = "Run!";
         message = "Bloody wasps";
     }
@@ -60,10 +60,10 @@ public class Warning {
             type = obj.getString(WARNING_TYPE);
             magnitude = obj.getString(WARNING_MAGNITUDE);
             impactTime = new Date(obj.getLong(WARNING_IMPACT_TIME));
-            lonStart = obj.getLong(WARNING_LON_START);
-            latStart = obj.getLong(WARNING_LAT_START);
-            lonEnd = obj.getLong(WARNING_LON_END);
-            latEnd = obj.getLong(WARNING_LAT_END);
+            latStart = obj.getDouble(WARNING_LAT_START);
+            lonStart = obj.getDouble(WARNING_LON_START);
+            latEnd = obj.getDouble(WARNING_LAT_END);
+            lonEnd = obj.getDouble(WARNING_LON_END);
             recommendedActions = obj.getString(WARNING_RECOMMENDED_ACTIONS);
             message = obj.getString(WARNING_MESSAGE);
         } catch (JSONException e) {
@@ -82,8 +82,8 @@ public class Warning {
             obj.put(WARNING_TYPE, type);
             obj.put(WARNING_MAGNITUDE, magnitude);
             obj.put(WARNING_IMPACT_TIME, impactTime.getTime());
-            obj.put(WARNING_LON_START, lonStart);
             obj.put(WARNING_LAT_START, latStart);
+            obj.put(WARNING_LON_START, lonStart);
             obj.put(WARNING_LON_END, lonEnd);
             obj.put(WARNING_LAT_END, latEnd);
             obj.put(WARNING_RECOMMENDED_ACTIONS, recommendedActions);

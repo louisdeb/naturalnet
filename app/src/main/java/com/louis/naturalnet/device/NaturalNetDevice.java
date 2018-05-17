@@ -2,6 +2,7 @@ package com.louis.naturalnet.device;
 
 import android.bluetooth.BluetoothDevice;
 import android.location.Location;
+import android.util.Log;
 import com.louis.naturalnet.data.Warning;
 import com.louis.naturalnet.signal.SignalQuality;
 import com.louis.naturalnet.utils.Constants;
@@ -9,6 +10,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class NaturalNetDevice {
+
+    private static final String TAG = "NetDevice";
 
     public BluetoothDevice device;
 
@@ -33,43 +36,79 @@ public class NaturalNetDevice {
         return device.getAddress();
     }
 
+    public String getName() {
+        return device.getName();
+    }
+
     public double getScore(JSONObject destination) {
         double score = (DeviceInformation.getQueueLength() - this.queueLength) +
                 Constants.ENERGY_PENALTY_COEFF * (batteryLevel - DeviceInformation.getBatteryLevel());
 
-        if (destination != null) {
-            try {
-                score += getLocationScore(destination);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+        Log.d(TAG, "Getting score for device " + device.getName());
+        Log.d(TAG, "Traditional score: " + score);
+
+        try {
+            score += getLocationScore(destination);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
 
         return score;
     }
 
     private double getLocationScore(JSONObject destination) throws JSONException {
-        double score = 0;
+        if (destination == null)
+            return Constants.EARTH_DIAMETER;
+
+        double score;
         double lat = location.getLatitude();
         double lon = location.getLongitude();
 
-        long destLat1 = destination.getLong(Warning.WARNING_LAT_START);
-        long destLat2 = destination.getLong(Warning.WARNING_LAT_END);
-        long destLon1 = destination.getLong(Warning.WARNING_LON_START);
-        long destLon2 = destination.getLong(Warning.WARNING_LON_END);
+        /* Test locations - use these on three devices to test decision making. */
+
+        /*
+        if (device.getName().equals("net0")) {
+            // Closest to the test destination
+            lat = 51.538331;
+            lon = -0.154256;
+        } else if (device.getName().equals("net1")) {
+            // In between location
+            lat = 51.538106;
+            lon = -0.151417;
+        } else if (device.getName().equals("net2")) {
+            // Farthest from test destination
+            lat = 51.537782;
+            lon = -0.148846;
+        }
+        */
+
+        double destLat1 = destination.getDouble(Warning.WARNING_LAT_START);
+        double destLon1 = destination.getDouble(Warning.WARNING_LON_START);
+        double destLat2 = destination.getDouble(Warning.WARNING_LAT_END);
+        double destLon2 = destination.getDouble(Warning.WARNING_LON_END);
+
+        Log.d(TAG, "Calculating distance between location " + lat + ", " + lon + " and zone (" + destLat1 + ", " +
+                          destLon1 + ") (" + destLat2 + ", " + destLon2 + ")");
 
         // Calculate the smallest distance between the device and the location area.
         double diffLon = Math.min(Math.toRadians(Math.abs(destLon1 - lon)),
                                   Math.toRadians(Math.abs(destLon2 - lon)));
 
+        Log.d(TAG, "diffLon: " + diffLon);
+
         double minDistance = Math.min(haversine(lat, destLat1, diffLon),
                                       haversine(lat, destLat2, diffLon));
 
+        Log.d(TAG, "minDistance: " + minDistance);
+
         score = Constants.EARTH_DIAMETER - minDistance;
+
+        Log.d(TAG, "score: " + score);
 
         // If we have movement information, calculate how soon this device will reach the target location.
         if (location.hasBearing() && location.hasSpeed()) {
-            
+            // Calculate time till arrival and add it on to the score
+            // If the device is travelling away from the destination we'd want to take away some amount from the score.
         }
 
         return score;
@@ -86,7 +125,5 @@ public class NaturalNetDevice {
 
         return Constants.EARTH_DIAMETER * c;
     }
-
-    // Could add scoring functions in here.
 
 }

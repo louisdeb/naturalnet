@@ -191,7 +191,7 @@ class BTCom {
 					if (mBluetoothAdapter.isDiscovering())
 						mBluetoothAdapter.cancelDiscovery();
 
-					Log.d(TAG, "Connected as a server to device: " + socket.getRemoteDevice().getAddress());
+					Log.d(TAG, "Connected as a server to device: " + socket.getRemoteDevice().getName());
 
 					// We want to exchange data with the connected NaturalNet device.
 					sendHandshake(socket, socket.getRemoteDevice(), false);
@@ -283,7 +283,7 @@ class BTCom {
 								if (!clientConnected) {
 									cancel();
 
-                                    Log.d(TAG, "Timeout for connection: " + device.getAddress());
+                                    Log.d(TAG, "Timeout for connection: " + device.getName() + " - " + device.getAddress());
 
                                     // Tell the BTDeviceManager that we failed to connect to the device.
                                     Intent connectionIntent = new Intent("com.louis.naturalnet.bluetooth.HandshakeReceiver");
@@ -300,7 +300,7 @@ class BTCom {
 
 					clientConnected = true;
 
-					Log.d(TAG, "Connected as a client to device: " + device.getAddress());
+					Log.d(TAG, "Connected as a client to device: " + device.getName());
 
 					// Perform a handshake with the device.
                     sendHandshake(mClientSocket, mClientSocket.getRemoteDevice(), true);
@@ -382,7 +382,7 @@ class BTCom {
 	 * @param device  The BluetoothDevice that has been connected
 	 */
 	private synchronized void connected(BluetoothSocket socket, BluetoothDevice device) {
-	    Log.d(TAG, "Called 'connected' with device: " + device.getAddress());
+	    Log.d(TAG, "Called 'connected' with device: " + device.getName());
 
 	    // Start the connection thread.
 		ConnectedThread newConn = new ConnectedThread(socket);

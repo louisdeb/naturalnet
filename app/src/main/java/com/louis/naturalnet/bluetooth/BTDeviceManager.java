@@ -199,7 +199,7 @@ public class BTDeviceManager extends BroadcastReceiver {
         }
 
         if (bestDevice != null) {
-            Log.d(TAG, "Sending to device: " + bestDevice.getAddress());
+            Log.d(TAG, "Sending to device: " + bestDevice.getName());
             manager.sendToBTDevice(bestDevice.device, packet);
         } else {
             Log.d(TAG, "Got no best device");
@@ -231,10 +231,10 @@ public class BTDeviceManager extends BroadcastReceiver {
 
                         destination = new JSONObject();
                         JSONObject warning = new JSONObject(item.data);
-                        destination.put(Warning.WARNING_LON_START, warning.getLong(Warning.WARNING_LON_START));
-                        destination.put(Warning.WARNING_LAT_START, warning.getLong(Warning.WARNING_LAT_START));
-                        destination.put(Warning.WARNING_LON_END, warning.getLong(Warning.WARNING_LON_END));
-                        destination.put(Warning.WARNING_LAT_END, warning.getLong(Warning.WARNING_LAT_END));
+                        destination.put(Warning.WARNING_LAT_START, warning.getDouble(Warning.WARNING_LAT_START));
+                        destination.put(Warning.WARNING_LON_START, warning.getDouble(Warning.WARNING_LON_START));
+                        destination.put(Warning.WARNING_LAT_END, warning.getDouble(Warning.WARNING_LAT_END));
+                        destination.put(Warning.WARNING_LON_END, warning.getDouble(Warning.WARNING_LON_END));
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
