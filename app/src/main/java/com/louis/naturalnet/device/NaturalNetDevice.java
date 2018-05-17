@@ -57,7 +57,7 @@ public class NaturalNetDevice {
     }
 
     private double getLocationScore(JSONObject destination) throws JSONException {
-        if (destination == null)
+        if (destination == null || location == null)
             return Constants.EARTH_DIAMETER;
 
         double score;

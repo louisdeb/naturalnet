@@ -20,7 +20,7 @@ import com.louis.naturalnet.signal.*;
 import java.util.ArrayList;
 
 public class NetworkFragment extends Fragment {
-    
+
     private boolean expanded = false;
 
     private SignalQuality cellSignalQuality;
