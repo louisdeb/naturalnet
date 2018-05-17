@@ -32,6 +32,7 @@ public class BTDeviceManager extends BroadcastReceiver {
     private static final String TAG = "BTBroadcastReceiver";
 
     private BTManager manager;
+    private Context context;
 
     // Timestamp to control if it is a new scan
     private long scanStartTimestamp = System.currentTimeMillis() - 100000;
@@ -48,6 +49,7 @@ public class BTDeviceManager extends BroadcastReceiver {
 
     BTDeviceManager(BTManager manager, Context context) {
         this.manager = manager;
+        this.context = context;
 
         IntentFilter handshakeFilter = new IntentFilter("com.louis.naturalnet.bluetooth.HandshakeReceiver");
         context.registerReceiver(new HandshakeReceiver() {
@@ -104,23 +106,6 @@ public class BTDeviceManager extends BroadcastReceiver {
                 // Dispatch a task to create a communication with each of the devices
                 new ExchangeHandshake(manager, discoveredDevices).execute();
             }
-
-            /*
-            if (System.currentTimeMillis() - scanStopTimestamp > Constants.SCAN_DURATION) {
-                new ExchangeData(manager, QueueManager.getInstance(context), BatteryMonitor.getInstance(context),
-                        naturalNetDevices).execute();
-
-                scanStopTimestamp = System.currentTimeMillis();
-
-                Log.d(TAG, "Discovery process has been stopped: " + String.valueOf(System.currentTimeMillis()));
-
-                // Create a broadcast to notify all BTDeviceListeners of the new device
-                // Actually here we're just notifying of all surrounding BT discoveredDevices, instead of NaturalNet devices.
-                Intent deviceBroadcastIntent = new Intent("com.louis.naturalnet.bluetooth.BTDeviceListener");
-                deviceBroadcastIntent.putExtra("discoveredDevices", discoveredDevices);
-                context.sendBroadcast(deviceBroadcastIntent);
-            }
-            */
         }
     }
 
@@ -157,6 +142,12 @@ public class BTDeviceManager extends BroadcastReceiver {
     private void handshakeReceivedMetadata(NaturalNetDevice device) {
         naturalNetDevices.add(device);
         naturalNetMACs.add(device.getAddress());
+
+        // Create a broadcast to notify all BTDeviceListeners of the new device.
+        // We can't parcel a NaturalNetDevice, so instead transmit the MACs.
+        Intent deviceBroadcastIntent = new Intent("com.louis.naturalnet.bluetooth.BTDeviceListener");
+        deviceBroadcastIntent.putStringArrayListExtra("devices", naturalNetMACs);
+        context.sendBroadcast(deviceBroadcastIntent);
     }
 
     private static class ExchangeHandshake extends AsyncTask<Void, Void, Void> {

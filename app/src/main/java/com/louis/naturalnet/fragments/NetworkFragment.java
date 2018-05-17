@@ -1,7 +1,6 @@
 package com.louis.naturalnet.fragments;
 
 import android.app.Fragment;
-import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -21,9 +20,7 @@ import com.louis.naturalnet.signal.*;
 import java.util.ArrayList;
 
 public class NetworkFragment extends Fragment {
-
-    private final static String TAG = "NetworkFragment";
-
+    
     private boolean expanded = false;
 
     private SignalQuality cellSignalQuality;
@@ -75,7 +72,7 @@ public class NetworkFragment extends Fragment {
                     return;
                 }
 
-                ArrayList<BluetoothDevice> devices = intent.getParcelableArrayListExtra("devices");
+                ArrayList<String> devices = intent.getStringArrayListExtra("devices");
                 handlePeersChange(devices, view);
             }
         }, bluetoothFilter);
@@ -182,13 +179,11 @@ public class NetworkFragment extends Fragment {
         handleNetworkChange();
     }
 
-    private void handlePeersChange(ArrayList<BluetoothDevice> peers, View view) {
-        int _numPeers = peers.size();
-
-        if (_numPeers == numPeers)
+    private void handlePeersChange(ArrayList<String> peers, View view) {
+        if (numPeers == peers.size())
             return;
 
-        numPeers = _numPeers;
+        numPeers = peers.size();
 
         ImageView peersIcon = view.findViewById(R.id.net_signal_icon);
         TextView netSignalText = view.findViewById(R.id.net_signal_text);
