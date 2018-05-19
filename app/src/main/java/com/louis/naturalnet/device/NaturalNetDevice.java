@@ -40,6 +40,29 @@ public class NaturalNetDevice {
         return device.getName();
     }
 
+    public boolean isAtDestination(JSONObject destination) {
+        try {
+            if (location == null)
+                return false;
+
+            double lat = location.getLatitude();
+            double lon = location.getLongitude();
+            double destLat1 = destination.getDouble(Warning.WARNING_LAT_START);
+            double destLat2 = destination.getDouble(Warning.WARNING_LAT_END);
+            double destLon1 = destination.getDouble(Warning.WARNING_LON_START);
+            double destLon2 = destination.getDouble(Warning.WARNING_LON_END);
+
+            double minLat = Math.min(destLat1, destLat2);
+            double maxLat = Math.max(destLat1, destLat2);
+            double minLon = Math.min(destLon1, destLon2);
+            double maxLon = Math.max(destLon1, destLon2);
+
+            return minLat <= lat && lat <= maxLat && minLon <= lon && lon <= maxLon;
+        } catch (JSONException e) {
+            return false;
+        }
+    }
+
     public double getScore(JSONObject destination) {
         double score = (DeviceInformation.getQueueLength() - this.queueLength) +
                 Constants.ENERGY_PENALTY_COEFF * (batteryLevel - DeviceInformation.getBatteryLevel());
@@ -97,10 +120,10 @@ public class NaturalNetDevice {
 
         // Calculate the smallest distance between the device and the location area.
         double minDistance = haversine(lat, lon, destLat, destLon);
-        Log.d(TAG, "minDistance: " + minDistance);
+        Log.d(TAG, "Min distance: " + minDistance);
 
         score = Constants.EARTH_DIAMETER - minDistance;
-        Log.d(TAG, "score: " + score);
+        Log.d(TAG, "Distance score: " + score);
 
         // If we have movement information, calculate how soon this device will reach the target location.
         if (location.hasBearing() && location.hasSpeed()) {
@@ -113,6 +136,7 @@ public class NaturalNetDevice {
 
             // We want to calculate whether travelling along the bearing from lat,lon will put us in the destination zone.
         } else {
+            Log.d(TAG, "No movement information");
             score += Constants.EARTH_DIAMETER;
         }
 

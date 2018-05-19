@@ -181,11 +181,18 @@ public class BTDeviceManager extends BroadcastReceiver {
             if (path.contains(device.getAddress()))
                 continue;
 
-            double score = device.getScore(destination);
+            // If the device is in the destination zone, send the packet to them regardless of their score.
+            if (device.isAtDestination(destination)) {
+                Log.d(TAG, "Sending to device at destination: " + device.getName());
+                manager.sendToBTDevice(device.device, packet);
+            } else {
+                double score = device.getScore(destination);
+                Log.d(TAG, "Device " + device.getName() + " has score: " + score);
 
-            if (bestDevice == null || score > maxScore) {
-                maxScore = score;
-                bestDevice = device;
+                if (bestDevice == null || score > maxScore) {
+                    maxScore = score;
+                    bestDevice = device;
+                }
             }
         }
 
@@ -231,6 +238,7 @@ public class BTDeviceManager extends BroadcastReceiver {
                     }
                 }
 
+                // TODO: We may want to flood to every known device if we are in the destination zone.
                 sendToBestDevice(packet, item.path, destination);
             }
         }
