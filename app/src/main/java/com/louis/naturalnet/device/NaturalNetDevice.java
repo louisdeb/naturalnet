@@ -16,6 +16,11 @@ class Point {
     double y;
 }
 
+class Journey {
+    double distance;
+    double bearing;
+}
+
 enum Quadrant {
     N, NE, E, SE, S, SW, W, NW, DEST
 }
@@ -23,6 +28,8 @@ enum Quadrant {
 public class NaturalNetDevice {
 
     private static final String TAG = "NetDevice";
+
+    private static final int DEFAULT_LOCATION_SCORE = 1000;
 
     public BluetoothDevice device;
 
@@ -84,6 +91,7 @@ public class NaturalNetDevice {
         try {
             score += getLocationScore(destination);
         } catch (JSONException e) {
+            score += DEFAULT_LOCATION_SCORE;
             e.printStackTrace();
         }
 
@@ -96,9 +104,9 @@ public class NaturalNetDevice {
     // If we don't have a estimated time, score += EARTH_RADIUS (i.e. a penalty)
     private double getLocationScore(JSONObject destination) throws JSONException {
         if (destination == null || location == null)
-            return 2 * Constants.EARTH_RADIUS;
+            return 0;
 
-        double score;
+        double score = DEFAULT_LOCATION_SCORE;
         double lat = Math.toRadians(location.getLatitude());
         double lon = Math.toRadians(location.getLongitude());
         double destLat1 = Math.toRadians(destination.getDouble(Warning.WARNING_LAT_START));
@@ -138,19 +146,29 @@ public class NaturalNetDevice {
         b.x = destLon2;
         b.y = Math.log(Math.tan(Math.PI / 4 + destLat2 / 2));
 
-        Quadrant quadrant = getQuadrant(n, a, b);
+        double maxX = Math.max(a.x, b.x);
+        double maxY = Math.max(a.y, b.y);
+        double minX = Math.min(a.x, b.x);
+        double minY = Math.min(a.y, b.y);
 
-        double bearing = Math.toRadians(location.getBearing());
-        double dX = Math.abs(a.x - b.x);
-        double dY = Math.abs(a.y - b.y);
+        Quadrant quadrant = getQuadrant(n, minX, maxX, minY, maxY);
 
-        double minDistance = getMinDistance(n, a, b, quadrant);
+        Journey journey = getMinJourney(n, quadrant, minX, maxX, minY, maxY);
 
-        score = Constants.EARTH_RADIUS - minDistance;
+        score -= journey.distance;
 
         if (location.hasBearing() && location.hasSpeed()) {
-            // We are trying to determine the distance till collision.
-            double distance;
+            double bearing = Math.toRadians(location.getBearing());
+            double speed = location.getSpeed();
+
+            // Find out whether the device will collide with the area
+            double maxBearing = getMaxBearing(n, quadrant, minX, maxX, minY, maxY);
+            double minBearing = getMinBearing(n, quadrant, minX, maxX, minY, maxY);
+
+            if (bearing >= minBearing && bearing <= maxBearing) {
+                double distance = getDistanceToArrival();
+                score -= distance / speed;
+            }
 
             /*
             double idealBearing = Math.atan(dX / dY);
@@ -169,12 +187,7 @@ public class NaturalNetDevice {
         return score;
     }
 
-    private Quadrant getQuadrant(Point n, Point a, Point b) {
-        double maxX = Math.max(a.x, b.x);
-        double maxY = Math.max(a.y, b.y);
-        double minX = Math.min(a.x, b.x);
-        double minY = Math.min(a.y, b.y);
-
+    private Quadrant getQuadrant(Point n, double minX, double maxX, double minY, double maxY) {
         boolean withinX = n.x >= minX && n.x <= maxX;
         boolean withinY = n.y >= minY && n.y <= maxY;
         boolean aboveX = n.x > maxX;
@@ -205,46 +218,70 @@ public class NaturalNetDevice {
         return SE;
     }
 
-    private double getMinDistance(Point n, Point a, Point b, Quadrant q) {
-        if (q == DEST)
-            return 0;
+    private Journey getMinJourney(Point n, Quadrant q, double minX, double maxX, double minY, double maxY) {
+        Journey journey = new Journey();
+        journey.bearing = 0;
+        journey.distance = 0;
 
-        double maxX = Math.max(a.x, b.x);
-        double maxY = Math.max(a.y, b.y);
-        double minX = Math.min(a.x, b.x);
-        double minY = Math.min(a.y, b.y);
+        if (q == DEST)
+            return journey;
 
         double dX = 0;
         double dY = 0;
 
         switch (q) {
             case N:
-                return n.y - maxY;
+                journey.distance = n.y - maxY;
+                journey.bearing = Math.PI;
+                return journey;
             case E:
-                return n.x - maxX;
+                journey.distance = n.x - maxX;
+                journey.bearing = 3 * Math.PI / 2;
+                return journey;
             case S:
-                return minY - n.y;
+                journey.distance = minY - n.y;
+                journey.bearing = 0;
+                return journey;
             case W:
-                return minX - n.x;
+                journey.distance = minX - n.x;
+                journey.bearing = Math.PI / 2;
+                return journey;
             case NE:
                 dX = n.x - maxX;
                 dY = n.y - maxY;
+                journey.bearing = 3 * Math.PI / 2 - Math.atan(dY / dX);
                 break;
             case SE:
                 dX = n.x - maxX;
                 dY = minY - n.y;
+                journey.bearing = Math.PI + Math.atan(dY / dX);
                 break;
             case SW:
                 dX = minX - n.x;
                 dY = minY - n.y;
+                journey.bearing = Math.atan(dX / dY);
                 break;
             case NW:
                 dX = minX - n.x;
                 dY = n.y - maxY;
+                journey.bearing = Math.PI - Math.atan(dX / dY);
                 break;
         }
 
-        return Math.sqrt(dX * dX + dY * dY);
+        journey.distance = Math.sqrt(dX * dX + dY * dY);
+        return journey;
+    }
+
+    private double getMaxBearing(Point n, Quadrant q, double minX, double maxX, double minY, double maxY) {
+
+    }
+
+    private double getMinBearing(Point n, Quadrant q, double minX, double maxX, double minY, double maxY) {
+
+    }
+
+    private double getDistanceToArrival() {
+
     }
 
 }
