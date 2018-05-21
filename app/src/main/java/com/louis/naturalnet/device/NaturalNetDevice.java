@@ -9,6 +9,17 @@ import com.louis.naturalnet.utils.Constants;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import static com.louis.naturalnet.device.Quadrant.*;
+
+class Point {
+    double x;
+    double y;
+}
+
+enum Quadrant {
+    N, NE, E, SE, S, SW, W, NW, DEST
+}
+
 public class NaturalNetDevice {
 
     private static final String TAG = "NetDevice";
@@ -88,100 +99,152 @@ public class NaturalNetDevice {
             return 2 * Constants.EARTH_RADIUS;
 
         double score;
-        double lat = location.getLatitude();
-        double lon = location.getLongitude();
-        double destLat1 = destination.getDouble(Warning.WARNING_LAT_START);
-        double destLat2 = destination.getDouble(Warning.WARNING_LAT_END);
-        double destLon1 = destination.getDouble(Warning.WARNING_LON_START);
-        double destLon2 = destination.getDouble(Warning.WARNING_LON_END);
-        
+        double lat = Math.toRadians(location.getLatitude());
+        double lon = Math.toRadians(location.getLongitude());
+        double destLat1 = Math.toRadians(destination.getDouble(Warning.WARNING_LAT_START));
+        double destLat2 = Math.toRadians(destination.getDouble(Warning.WARNING_LAT_END));
+        double destLon1 = Math.toRadians(destination.getDouble(Warning.WARNING_LON_START));
+        double destLon2 = Math.toRadians(destination.getDouble(Warning.WARNING_LON_END));
+
         /* Test locations - use these on three devices to test decision making. */
 
         /*
         if (device.getName().equals("net0")) {
             // Closest to the test destination
-            lat = 51.538331;
-            lon = -0.154256;
+            lat = Math.toRadians(51.538331);
+            lon = Math.toRadians(-0.154256);
         } else if (device.getName().equals("net1")) {
             // In between location
-            lat = 51.538106;
-            lon = -0.151417;
+            lat = Math.toRadians(51.538106);
+            lon = Math.toRadians(-0.151417);
         } else if (device.getName().equals("net2")) {
             // Farthest from test destination
-            lat = 51.537782;
-            lon = -0.148846;
+            lat = Math.toRadians(51.537782);
+            lon = Math.toRadians(-0.148846);
         }
         */
 
-        // Use the centre location of the zone as our destination point.
-        double destLat = (destLat1 + destLat2) / 2;
-        double destLon = (destLon1 + destLon2) / 2;
+        // Convert coordinates to Cartesian coordinates (this link doesn't use r)
+        // https://stackoverflow.com/questions/5983099/converting-longitude-latitude-to-x-y-coordinate
+        Point n = new Point();
+        n.x = lon;
+        n.y = Math.log(Math.tan(Math.PI / 4 + lat / 2));
 
-        // Calculate the smallest distance between the device and the location area.
-        double minDistance = haversine(lat, lon, destLat, destLon);
-        Log.d(TAG, "minDistance: " + minDistance);
+        Point a = new Point();
+        a.x = destLon1;
+        a.y = Math.log(Math.tan(Math.PI / 4 + destLat1 / 2));
 
-        // Pythagorean attempt at minDistance (using Spherical Pythagorean Theorem)
-        // https://www.math.hmc.edu/funfacts/ffiles/20006.2.shtml
-        // Only calculates distance to nearest corner (does not account for 'x' offset due to bearing).
-        double dLat = Math.min(Math.abs(lat - destLat1), Math.abs(lat - destLat2));
-        double dLon = Math.min(Math.abs(lon - destLon1), Math.abs(lon - destLon2));
-        double pMinDistance = Constants.EARTH_RADIUS * Math.acos(
-                Math.cos(dLat * dLat / Constants.EARTH_RADIUS) * Math.cos(dLon * dLon / Constants.EARTH_RADIUS));
-        Log.d(TAG, "pMinDistance: " + pMinDistance);
+        Point b = new Point();
+        b.x = destLon2;
+        b.y = Math.log(Math.tan(Math.PI / 4 + destLat2 / 2));
 
-        double azimuthR = Math.acos((Math.cos(dLon) - Math.cos(pMinDistance) * Math.cos(dLat)) / Math.sin(dLat) * Math.sin(pMinDistance));
-        Log.d(TAG, "azimuth: " + azimuthR);
+        Quadrant quadrant = getQuadrant(n, a, b);
 
-        // TODO: Is this already degrees?
-        // double bearing = Math.toDegrees(location.getBearing());
+        double bearing = Math.toRadians(location.getBearing());
+        double dX = Math.abs(a.x - b.x);
+        double dY = Math.abs(a.y - b.y);
+
+        double minDistance = getMinDistance(n, a, b, quadrant);
 
         score = Constants.EARTH_RADIUS - minDistance;
-        Log.d(TAG, "Distance score: " + score);
 
-        // If we have movement information, calculate how soon this device will reach the target location.
         if (location.hasBearing() && location.hasSpeed()) {
-            // Calculate time till arrival and add it on to the score
-            // If the device is travelling away from the destination we'd want to take away some amount from the score.
-            // double bearing = location.getBearing();
-            // double speed = location.getSpeed();
+            // We are trying to determine the distance till collision.
+            double distance;
 
-            // double azimuth = Math.toDegrees(azimuth(lat, lon, destLat, destLon));
-
-            // We want to calculate whether travelling along the bearing from lat,lon will put us in the destination zone.
-        } else {
-            Log.d(TAG, "No movement information");
-            score += Constants.EARTH_RADIUS;
+            /*
+            double idealBearing = Math.atan(dX / dY);
+            // tan(bearing) = dX + x / dY
+            if (bearing == idealBearing) {
+                // min distance
+            } else if (bearing >= 0 && bearing < Math.PI / 4) {
+                // offsetY
+            } else if (bearing >= Math.PI / 4 && bearing < Math.PI / 2) {
+                double offsetX = Math.tan(bearing) * dY - dX;
+                distance = Math.sqrt(dY * dY + (dX + offsetX) * (dX + offsetX));
+            }
+            */
         }
 
         return score;
     }
 
-    // An implementation of the Haversine formula, which computes the great-circle distance between two points on a
-    // sphere. https://www.movable-type.co.uk/scripts/latlong.html
-    private double haversine(double lat1, double lon1, double lat2, double lon2) {
-        double phi1 = Math.toRadians(lat1);
-        double phi2 = Math.toRadians(lat2);
+    private Quadrant getQuadrant(Point n, Point a, Point b) {
+        double maxX = Math.max(a.x, b.x);
+        double maxY = Math.max(a.y, b.y);
+        double minX = Math.min(a.x, b.x);
+        double minY = Math.min(a.y, b.y);
 
-        double diffLat = Math.toRadians(Math.abs(lat2 - lat1));
-        double diffLon = Math.toRadians(Math.abs(lon2 - lon1));
+        boolean withinX = n.x >= minX && n.x <= maxX;
+        boolean withinY = n.y >= minY && n.y <= maxY;
+        boolean aboveX = n.x > maxX;
+        boolean belowX = n.x < minX;
+        boolean aboveY = n.y > maxY;
 
-        double a = Math.pow(Math.sin(diffLat / 2), 2) +
-                   Math.cos(phi1) * Math.cos(phi2) * Math.pow(Math.sin(diffLon / 2), 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        if (aboveY) {
+            if (belowX)
+                return NW;
+            if (withinX)
+                return N;
+            if (aboveX)
+                return NE;
+        } else if (withinY) {
+            if (belowX)
+                return W;
+            if (withinX)
+                return DEST;
+            if (aboveX)
+                return E;
+        } else {
+            if (belowX)
+                return SW;
+            if (withinX)
+                return S;
+        }
 
-        return Constants.EARTH_RADIUS * c;
+        return SE;
     }
 
-    // Returns the initial bearing (in radians) of the line from lat1,lon1 to lat2,lon2.
-    // https://www.movable-type.co.uk/scripts/latlong.html
-    private double azimuth(double lat1, double lon1, double lat2, double lon2) {
-        double phi1 = Math.toRadians(lat1);
-        double phi2 = Math.toRadians(lat2);
-        double diffLon = Math.toRadians(Math.abs(lon2 - lon1));
+    private double getMinDistance(Point n, Point a, Point b, Quadrant q) {
+        if (q == DEST)
+            return 0;
 
-        return Math.atan2(Math.sin(diffLon) * Math.cos(phi2),
-                          Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(diffLon));
+        double maxX = Math.max(a.x, b.x);
+        double maxY = Math.max(a.y, b.y);
+        double minX = Math.min(a.x, b.x);
+        double minY = Math.min(a.y, b.y);
+
+        double dX = 0;
+        double dY = 0;
+
+        switch (q) {
+            case N:
+                return n.y - maxY;
+            case E:
+                return n.x - maxX;
+            case S:
+                return minY - n.y;
+            case W:
+                return minX - n.x;
+            case NE:
+                dX = n.x - maxX;
+                dY = n.y - maxY;
+                break;
+            case SE:
+                dX = n.x - maxX;
+                dY = minY - n.y;
+                break;
+            case SW:
+                dX = minX - n.x;
+                dY = minY - n.y;
+                break;
+            case NW:
+                dX = minX - n.x;
+                dY = n.y - maxY;
+                break;
+        }
+
+        return Math.sqrt(dX * dX + dY * dY);
     }
 
 }
