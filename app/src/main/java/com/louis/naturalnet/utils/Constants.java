@@ -20,7 +20,7 @@ public abstract class Constants {
 
 	public static final int QUEUE_MONITOR_INTERVAL = 10000;
 
-	public static final double EARTH_DIAMETER = 6371.01 * 1000;
+	public static final double EARTH_RADIUS = 6371.01 * 1000;
 
 	/* Bluetooth Communication Constants */
 
