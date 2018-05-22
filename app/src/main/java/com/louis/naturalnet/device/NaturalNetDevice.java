@@ -155,6 +155,7 @@ public class NaturalNetDevice {
 
         Journey journey = getMinJourney(p, quadrant, minX, maxX, minY, maxY);
 
+        // TODO: Create some nicer scoring function based on distance and speed and whether the information exists.
         score -= journey.distance;
 
         if (location.hasBearing() && location.hasSpeed()) {
@@ -165,23 +166,15 @@ public class NaturalNetDevice {
             double maxBearing = getMaxBearing(p, quadrant, minX, maxX, minY, maxY);
             double minBearing = getMinBearing(p, quadrant, minX, maxX, minY, maxY);
 
+            // If the device will collide, calculate the time till collision.
+            // TODO: We want to have some great benefit in score if the device will collide, especially since they
+            // TODO: are compared to stationary devices and devices moving in the wrong direction altogether.
             if (bearing >= minBearing && bearing <= maxBearing) {
-                double distance = getDistanceToArrival();
+                double distance = getDistanceToArrival(p, bearing, quadrant, journey.bearing, minX, maxX, minY, maxY);
                 score -= distance / speed;
             }
 
-            /*
-            double idealBearing = Math.atan(dX / dY);
-            // tan(bearing) = dX + x / dY
-            if (bearing == idealBearing) {
-                // min distance
-            } else if (bearing >= 0 && bearing < Math.PI / 4) {
-                // offsetY
-            } else if (bearing >= Math.PI / 4 && bearing < Math.PI / 2) {
-                double offsetX = Math.tan(bearing) * dY - dX;
-                distance = Math.sqrt(dY * dY + (dX + offsetX) * (dX + offsetX));
-            }
-            */
+            // Add some penalty to the score if the device won't collide with the area
         }
 
         return score;
@@ -395,7 +388,58 @@ public class NaturalNetDevice {
         return -1;
     }
 
-    private double getDistanceToArrival() {
+    // TODO: Only SW has sine calculation & check trig otherwise
+    private double getDistanceToArrival(Point p, double bearing, Quadrant q, double idealBearing,
+                                        double minX, double maxX, double minY, double maxY) {
+        double d;
+
+        switch (q) {
+            case N:
+                d = p.y - maxY;
+                return d / Math.cos(Math.abs(Math.PI - bearing));
+            case NE:
+                if (bearing < idealBearing) { // Hitting right wall
+                    d = p.x - maxX;
+                    return d / Math.cos(3 * Math.PI / 2 - bearing);
+                } else { // Hitting top wall
+                    d = p.y - maxY;
+                    return d / Math.cos(bearing - Math.PI);
+                }
+            case E:
+                d = p.x - maxX;
+                return d / Math.cos(Math.abs(3 * Math.PI / 2 - bearing));
+            case SE:
+                if (bearing < idealBearing) { // Hitting bottom wall
+                    d = minY - p.y;
+                    return d / Math.cos(2 * Math.PI - bearing);
+                } else { // Hitting right wall
+                    d = p.x - maxX;
+                    return d / Math.cos(bearing - 3 * Math.PI / 2);
+                }
+            case S:
+                d = minY - p.y;
+                return d / Math.cos(bearing);
+            case SW:
+                if (bearing < idealBearing) { // Hitting left wall
+                    d = minX - p.x;
+                    return d / Math.sin(bearing);
+                } else { // Hitting bottom wall
+                    d = minY - p.y;
+                    return d / Math.sin(Math.PI / 2 - bearing);
+                }
+            case W:
+                d = minX - p.x;
+                return d / Math.cos(Math.abs(Math.PI / 2 - bearing));
+            case NW:
+                if (bearing < idealBearing) { // Hitting top wall
+                    d = p.y - maxY;
+                    return d / Math.cos(Math.PI - bearing);
+                } else { // Hitting left wall
+                    d = minY - p.y;
+                    return d / Math.cos(bearing - Math.PI / 2);
+                }
+        }
+
         return -1;
     }
 
