@@ -132,11 +132,11 @@ public class NaturalNetDevice {
         }
         */
 
-        // Convert coordinates to Cartesian coordinates (this link doesn't use r)
+        // Convert coordinates to Cartesian coordinates (this source doesn't use Earth radius)
         // https://stackoverflow.com/questions/5983099/converting-longitude-latitude-to-x-y-coordinate
-        Point n = new Point();
-        n.x = lon;
-        n.y = Math.log(Math.tan(Math.PI / 4 + lat / 2));
+        Point p = new Point();
+        p.x = lon;
+        p.y = Math.log(Math.tan(Math.PI / 4 + lat / 2));
 
         Point a = new Point();
         a.x = destLon1;
@@ -151,9 +151,9 @@ public class NaturalNetDevice {
         double minX = Math.min(a.x, b.x);
         double minY = Math.min(a.y, b.y);
 
-        Quadrant quadrant = getQuadrant(n, minX, maxX, minY, maxY);
+        Quadrant quadrant = getQuadrant(p, minX, maxX, minY, maxY);
 
-        Journey journey = getMinJourney(n, quadrant, minX, maxX, minY, maxY);
+        Journey journey = getMinJourney(p, quadrant, minX, maxX, minY, maxY);
 
         score -= journey.distance;
 
@@ -162,8 +162,8 @@ public class NaturalNetDevice {
             double speed = location.getSpeed();
 
             // Find out whether the device will collide with the area
-            double maxBearing = getMaxBearing(n, quadrant, minX, maxX, minY, maxY);
-            double minBearing = getMinBearing(n, quadrant, minX, maxX, minY, maxY);
+            double maxBearing = getMaxBearing(p, quadrant, minX, maxX, minY, maxY);
+            double minBearing = getMinBearing(p, quadrant, minX, maxX, minY, maxY);
 
             if (bearing >= minBearing && bearing <= maxBearing) {
                 double distance = getDistanceToArrival();
@@ -187,12 +187,12 @@ public class NaturalNetDevice {
         return score;
     }
 
-    private Quadrant getQuadrant(Point n, double minX, double maxX, double minY, double maxY) {
-        boolean withinX = n.x >= minX && n.x <= maxX;
-        boolean withinY = n.y >= minY && n.y <= maxY;
-        boolean aboveX = n.x > maxX;
-        boolean belowX = n.x < minX;
-        boolean aboveY = n.y > maxY;
+    private Quadrant getQuadrant(Point p, double minX, double maxX, double minY, double maxY) {
+        boolean withinX = p.x >= minX && p.x <= maxX;
+        boolean withinY = p.y >= minY && p.y <= maxY;
+        boolean aboveX = p.x > maxX;
+        boolean belowX = p.x < minX;
+        boolean aboveY = p.y > maxY;
 
         if (aboveY) {
             if (belowX)
@@ -218,7 +218,7 @@ public class NaturalNetDevice {
         return SE;
     }
 
-    private Journey getMinJourney(Point n, Quadrant q, double minX, double maxX, double minY, double maxY) {
+    private Journey getMinJourney(Point p, Quadrant q, double minX, double maxX, double minY, double maxY) {
         Journey journey = new Journey();
         journey.bearing = 0;
         journey.distance = 0;
@@ -231,39 +231,39 @@ public class NaturalNetDevice {
 
         switch (q) {
             case N:
-                journey.distance = n.y - maxY;
+                journey.distance = p.y - maxY;
                 journey.bearing = Math.PI;
                 return journey;
             case E:
-                journey.distance = n.x - maxX;
+                journey.distance = p.x - maxX;
                 journey.bearing = 3 * Math.PI / 2;
                 return journey;
             case S:
-                journey.distance = minY - n.y;
+                journey.distance = minY - p.y;
                 journey.bearing = 0;
                 return journey;
             case W:
-                journey.distance = minX - n.x;
+                journey.distance = minX - p.x;
                 journey.bearing = Math.PI / 2;
                 return journey;
             case NE:
-                dX = n.x - maxX;
-                dY = n.y - maxY;
+                dX = p.x - maxX;
+                dY = p.y - maxY;
                 journey.bearing = 3 * Math.PI / 2 - Math.atan(dY / dX);
                 break;
             case SE:
-                dX = n.x - maxX;
-                dY = minY - n.y;
+                dX = p.x - maxX;
+                dY = minY - p.y;
                 journey.bearing = Math.PI + Math.atan(dY / dX);
                 break;
             case SW:
-                dX = minX - n.x;
-                dY = minY - n.y;
+                dX = minX - p.x;
+                dY = minY - p.y;
                 journey.bearing = Math.atan(dX / dY);
                 break;
             case NW:
-                dX = minX - n.x;
-                dY = n.y - maxY;
+                dX = minX - p.x;
+                dY = p.y - maxY;
                 journey.bearing = Math.PI - Math.atan(dX / dY);
                 break;
         }
@@ -272,16 +272,131 @@ public class NaturalNetDevice {
         return journey;
     }
 
-    private double getMaxBearing(Point n, Quadrant q, double minX, double maxX, double minY, double maxY) {
+    private double getMaxBearing(Point p, Quadrant q, double minX, double maxX, double minY, double maxY) {
+        double x;
+        double y;
+        double dX;
+        double dY;
 
+        switch (q) {
+            // TODO: With this syntax, will case N execute the code inside case NE?
+            // Bearing points to top left point.
+            case N:
+            case NE:
+                x = minX;
+                y = maxY;
+
+                dX = p.x - x;
+                dY = p.y - y;
+
+                return Math.PI + Math.atan(dX / dY);
+            // Bearing points to top right point.
+            case E:
+            case SE:
+                x = maxX;
+                y = maxY;
+
+                dX = p.x - x;
+                dY = y - p.y;
+
+                return 3 * Math.PI / 2 + Math.atan(dY / dX);
+            // Bearing points to top left point, except we are now underneath the point (dY differs to N, NE).
+            case S:
+                x = minX;
+                y = maxY;
+
+                dX = p.x - x;
+                dY = y - p.y;
+
+                return 3 * Math.PI / 2 + Math.atan(dY / dX);
+            // Bearing points to bottom right point.
+            case SW:
+                x = maxX;
+                y = minY;
+
+                dX = x - p.x;
+                dY = y - p.y;
+
+                return Math.atan(dX / dY);
+            // Bearing points to bottom left point.
+            case W:
+            case NW:
+                x = minX;
+                y = minY;
+
+                dX = x - p.x;
+                dY = p.y - y;
+
+                return Math.PI / 2 + Math.atan(dY / dX);
+        }
+
+        // We don't really want to arrive here - we could add a default case for the switch. We shouldn't receive
+        // the DEST case either.
+        return -1;
     }
 
-    private double getMinBearing(Point n, Quadrant q, double minX, double maxX, double minY, double maxY) {
+    private double getMinBearing(Point p, Quadrant q, double minX, double maxX, double minY, double maxY) {
+        double x;
+        double y;
+        double dX;
+        double dY;
 
+        switch (q) {
+            // Bearing points to top right point.
+            case N:
+            case NW:
+                x = maxX;
+                y = maxY;
+
+                dX = x - p.x;
+                dY = p.y - y;
+
+                return Math.PI / 2 + Math.atan(dY / dX);
+            // Bearing points to bottom right point.
+            case NE:
+            case E:
+                x = maxX;
+                y = minY;
+
+                dX = p.x - x;
+                dY = p.y - y;
+
+                return Math.PI + Math.atan(dX / dY);
+            // Bearing points to bottom left point.
+            case SE:
+                x = minX;
+                y = minY;
+
+                dX = p.x - x;
+                dY = y - p.y;
+
+                return 3 * Math.PI / 2 + Math.atan(dY / dX);
+            // Bearing points to top right point.
+            case S:
+                x = maxX;
+                y = maxY;
+
+                dX = x - p.x;
+                dY = y - p.y;
+
+                return Math.atan(dX / dY);
+            // Bearing points to top left point.
+            case SW:
+            case W:
+                x = minX;
+                y = maxY;
+
+                dX = x - p.x;
+                dY = y - p.y;
+
+                return Math.atan(dX / dY);
+        }
+
+        return -1;
     }
 
     private double getDistanceToArrival() {
-
+        return -1;
     }
 
 }
