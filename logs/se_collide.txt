@@ -1,0 +1,18 @@
+05-24 16:59:57.267 9090-9242/com.louis.naturalnet D/NetDevice: Getting score for device net2
+05-24 16:59:57.267 9090-9242/com.louis.naturalnet D/NetDevice: Traditional score: 0.09999999999999998
+05-24 16:59:57.270 9090-9242/com.louis.naturalnet D/NetDevice: Point p: p.x=-0.00266550174023078, p.y=1.053089971653533
+05-24 16:59:57.270 9090-9242/com.louis.naturalnet D/NetDevice: Point a: a.x=-0.0028187067419708422, a.y=1.0531562773774
+05-24 16:59:57.270 9090-9242/com.louis.naturalnet D/NetDevice: Point b: b.x=-0.002709902916401515, b.y=1.0531208652590647
+05-24 16:59:57.270 9090-9242/com.louis.naturalnet D/NetDevice: minX: -0.0028187067419708422
+05-24 16:59:57.270 9090-9242/com.louis.naturalnet D/NetDevice: maxX: -0.002709902916401515
+05-24 16:59:57.270 9090-9242/com.louis.naturalnet D/NetDevice: minY: 1.0531208652590647
+05-24 16:59:57.270 9090-9242/com.louis.naturalnet D/NetDevice: maxY: 1.0531562773774
+05-24 16:59:57.272 9090-9242/com.louis.naturalnet D/NetDevice: Quadrant: SE
+05-24 16:59:57.273 9090-9242/com.louis.naturalnet D/NetDevice: Journey: journey.distance=5.409139772733843E-5, journey.bearing=3.749483139515215
+05-24 16:59:57.273 9090-9242/com.louis.naturalnet D/NetDevice: Bearing: 5.5
+05-24 16:59:57.273 9090-9242/com.louis.naturalnet D/NetDevice: Speed: 10.0
+05-24 16:59:57.273 9090-9242/com.louis.naturalnet D/NetDevice: Max bearing: 5.6931248664219805
+05-24 16:59:57.273 9090-9242/com.louis.naturalnet D/NetDevice: Min bearing: 4.911369425866182
+05-24 16:59:57.273 9090-9242/com.louis.naturalnet D/NetDevice: Will collide
+05-24 16:59:57.273 9090-9242/com.louis.naturalnet D/NetDevice: Collides at distance: 6.293215931327388E-5
+05-24 16:59:57.295 9090-9242/com.louis.naturalnet D/BTBroadcastReceiver: Device net2 has score: 1000.0999396153863

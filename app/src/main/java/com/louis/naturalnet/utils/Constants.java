@@ -4,14 +4,18 @@ import java.util.UUID;
 
 public abstract class Constants {
 
-	public static long SCAN_INTERVAL = 15000;
-	public static long SCAN_DURATION = 10000;
+	public static long BT_SCAN_INTERVAL = 15000;
+	public static long BT_SCAN_DURATION = 10000;
 	public static long DATA_RATE = 60000;
 
 	public static final long SCAN_DURATION_SAVING = 5000;
 	public static final long SCAN_DURATION_NORMAL = 10000;
 	public static final long SCAN_INTERVAL_NORMAL = 15000;
 	public static final long SCAN_INTERVAL_SAVING = 300000;
+
+    // Time between location requests (millis)
+    public static final long LOCATION_REQUEST_INTERVAL = 30000;
+    public static final long LOCATION_REQUEST_INTERVAL_FASTEST = 2000;
 	
 	public static double ENERGY_PENALTY_COEFF = 0.1;
 	public static final double ENERGY_PENALTY_COEFF_ON = 0.1;

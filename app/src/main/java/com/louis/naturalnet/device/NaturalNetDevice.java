@@ -127,8 +127,38 @@ public class NaturalNetDevice {
             lon = Math.toRadians(-0.151417);
         } else if (device.getName().equals("net2")) {
             // Farthest from test destination
-            lat = Math.toRadians(51.537782);
-            lon = Math.toRadians(-0.148846);
+
+            // North:
+            // lat = Math.toRadians(51.540437);
+            // lon = Math.toRadians(-0.158245);
+
+            // North East:
+            // lat = Math.toRadians(51.541003);
+            // lon = Math.toRadians(-0.152636);
+
+            // East:
+            // lat = Math.toRadians(51.537782);
+            // lon = Math.toRadians(-0.148846);
+
+            // South East:
+            // lat = Math.toRadians(51.536519);
+            // lon = Math.toRadians(-0.152722);
+
+            // South:
+            // lat = Math.toRadians(51.535357);
+            // lon = Math.toRadians(-0.157643);
+
+            // South West:
+            // lat = Math.toRadians(51.535420);
+            // lon = Math.toRadians(-0.165768);
+
+            // West:
+            // lat = Math.toRadians(51.538311);
+            // lon = Math.toRadians(-0.163183);
+
+            // North West:
+            // lat = Math.toRadians(51.541480);
+            // lon = Math.toRadians(-0.164202);
         }
         */
 
@@ -146,14 +176,18 @@ public class NaturalNetDevice {
         b.x = destLon2;
         b.y = Math.log(Math.tan(Math.PI / 4 + destLat2 / 2));
 
-        double maxX = Math.max(a.x, b.x);
-        double maxY = Math.max(a.y, b.y);
         double minX = Math.min(a.x, b.x);
+        double maxX = Math.max(a.x, b.x);
         double minY = Math.min(a.y, b.y);
+        double maxY = Math.max(a.y, b.y);
 
         Quadrant quadrant = getQuadrant(p, minX, maxX, minY, maxY);
 
+        // Log.d(TAG, "Quadrant: " + quadrant);
+
         Journey journey = getMinJourney(p, quadrant, minX, maxX, minY, maxY);
+
+        // Log.d(TAG, "Journey: journey.distance=" + journey.distance + ", journey.bearing=" + journey.bearing);
 
         // TODO: Create some nicer scoring function based on distance and speed and whether the information exists.
         score -= journey.distance;
@@ -162,19 +196,33 @@ public class NaturalNetDevice {
             double bearing = Math.toRadians(location.getBearing());
             double speed = location.getSpeed();
 
+            // Log.d(TAG, "Bearing: " + bearing);
+            // Log.d(TAG, "Speed: " + speed);
+
             // Find out whether the device will collide with the area
             double maxBearing = getMaxBearing(p, quadrant, minX, maxX, minY, maxY);
             double minBearing = getMinBearing(p, quadrant, minX, maxX, minY, maxY);
+
+            // Log.d(TAG, "Max bearing: " + maxBearing);
+            // Log.d(TAG, "Min bearing: " + minBearing);
 
             // If the device will collide, calculate the time till collision.
             // TODO: We want to have some great benefit in score if the device will collide, especially since they
             // TODO: are compared to stationary devices and devices moving in the wrong direction altogether.
             if (bearing >= minBearing && bearing <= maxBearing) {
+                Log.d(TAG, "Will collide");
                 double distance = getDistanceToArrival(p, bearing, quadrant, journey.bearing, minX, maxX, minY, maxY);
+                Log.d(TAG, "Collides at distance: " + distance);
+                Log.d(TAG, "Time till collision: " + distance / speed);
                 score -= distance / speed;
+            } else {
+                Log.d(TAG, "Will not collide");
+
+                // Add some penalty to the score if the device won't collide with the area
             }
 
-            // Add some penalty to the score if the device won't collide with the area
+        } else {
+            Log.d(TAG, "Did not have bearing and speed information");
         }
 
         return score;
@@ -272,7 +320,6 @@ public class NaturalNetDevice {
         double dY;
 
         switch (q) {
-            // TODO: With this syntax, will case N execute the code inside case NE?
             // Bearing points to top left point.
             case N:
             case NE:
@@ -388,7 +435,6 @@ public class NaturalNetDevice {
         return -1;
     }
 
-    // TODO: Only SW has sine calculation & check trig otherwise
     private double getDistanceToArrival(Point p, double bearing, Quadrant q, double idealBearing,
                                         double minX, double maxX, double minY, double maxY) {
         double d;
@@ -425,7 +471,7 @@ public class NaturalNetDevice {
                     return d / Math.sin(bearing);
                 } else { // Hitting bottom wall
                     d = minY - p.y;
-                    return d / Math.sin(Math.PI / 2 - bearing);
+                    return d / Math.cos(bearing);
                 }
             case W:
                 d = minX - p.x;
@@ -435,7 +481,7 @@ public class NaturalNetDevice {
                     d = p.y - maxY;
                     return d / Math.cos(Math.PI - bearing);
                 } else { // Hitting left wall
-                    d = minY - p.y;
+                    d = minX - p.x;
                     return d / Math.cos(bearing - Math.PI / 2);
                 }
         }

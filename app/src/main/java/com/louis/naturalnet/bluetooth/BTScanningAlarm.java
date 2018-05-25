@@ -75,7 +75,7 @@ public class BTScanningAlarm extends BroadcastReceiver {
 
 		if (alarmMgr != null) {
 			alarmMgr.cancel(alarmIntent);
-            alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, time, Constants.SCAN_INTERVAL, alarmIntent);
+            alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, time, Constants.BT_SCAN_INTERVAL, alarmIntent);
 		}
 	}
 
@@ -84,7 +84,7 @@ public class BTScanningAlarm extends BroadcastReceiver {
 		// Start scan.
 		Log.d(TAG, "start a scan at " + String.valueOf(System.currentTimeMillis()));
 		if (mBTController != null) {
-			mBTController.startBTScan(Constants.SCAN_DURATION);
+			mBTController.startBTScan(Constants.BT_SCAN_DURATION);
 		}
 
 		// Schedule a new scan.

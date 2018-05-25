@@ -1,0 +1,18 @@
+05-22 16:52:25.730 1918-2127/com.louis.naturalnet D/NetDevice: Getting score for device net2
+05-22 16:52:25.731 1918-2127/com.louis.naturalnet D/NetDevice: Traditional score: -0.30000000000000004
+05-22 16:52:25.735 1918-2127/com.louis.naturalnet D/NetDevice: Point p: p.x=-0.00259785277842348, p.y=1.0531254109752652
+05-22 16:52:25.736 1918-2127/com.louis.naturalnet D/NetDevice: Point a: a.x=-0.0028187067419708422, a.y=1.0531562773774
+05-22 16:52:25.736 1918-2127/com.louis.naturalnet D/NetDevice: Point b: b.x=-0.002709902916401515, b.y=1.0531208652590647
+05-22 16:52:25.736 1918-2127/com.louis.naturalnet D/NetDevice: minX: -0.0028187067419708422
+05-22 16:52:25.736 1918-2127/com.louis.naturalnet D/NetDevice: maxX: -0.002709902916401515
+05-22 16:52:25.736 1918-2127/com.louis.naturalnet D/NetDevice: minY: 1.0531208652590647
+05-22 16:52:25.736 1918-2127/com.louis.naturalnet D/NetDevice: maxY: 1.0531562773774
+05-22 16:52:25.739 1918-2127/com.louis.naturalnet D/NetDevice: Quadrant: E
+05-22 16:52:25.742 1918-2127/com.louis.naturalnet D/NetDevice: Journey: journey.distance=1.1205013797803507E-4, journey.bearing=4.71238898038469
+05-22 16:52:25.742 1918-2127/com.louis.naturalnet D/NetDevice: Bearing: 4.7
+05-22 16:52:25.742 1918-2127/com.louis.naturalnet D/NetDevice: Speed: 10.0
+05-22 16:52:25.742 1918-2127/com.louis.naturalnet D/NetDevice: Max bearing: 4.981191684457939
+05-22 16:52:25.742 1918-2127/com.louis.naturalnet D/NetDevice: Min bearing: 4.671842623670319
+05-22 16:52:25.743 1918-2127/com.louis.naturalnet D/NetDevice: Will collide
+05-22 16:52:25.743 1918-2127/com.louis.naturalnet D/NetDevice: Collides at distance: 1.1205873763852523E-4
+05-22 16:52:25.744 1918-2127/com.louis.naturalnet D/BTBroadcastReceiver: Device net2 has score: 999.6998767439883

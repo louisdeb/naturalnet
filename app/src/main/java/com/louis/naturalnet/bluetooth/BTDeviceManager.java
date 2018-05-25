@@ -85,7 +85,7 @@ public class BTDeviceManager extends BroadcastReceiver {
         } else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
             // Start a new scan
 
-            if (System.currentTimeMillis() - scanStartTimestamp > Constants.SCAN_DURATION) {
+            if (System.currentTimeMillis() - scanStartTimestamp > Constants.BT_SCAN_DURATION) {
                 discoveredMACs = new ArrayList<>();
                 discoveredDevices = new ArrayList<>();
                 scanStartTimestamp = System.currentTimeMillis();
@@ -98,7 +98,7 @@ public class BTDeviceManager extends BroadcastReceiver {
             // Do we want this if statement? It checks that we have waited the scan duration, but are also receiving
             // the action ACTION_DISCOVERY_FINISHED? Probably just worth checking if we ever receive this action
             // without having waited the whole duration.
-            if (System.currentTimeMillis() - scanStopTimestamp > Constants.SCAN_DURATION) {
+            if (System.currentTimeMillis() - scanStopTimestamp > Constants.BT_SCAN_DURATION) {
 
                 // If we have data to send and we have some NaturalNet devices, we may want to prioritise this than
                 // checking for new NaturalNet devices.

@@ -1,0 +1,13 @@
+05-22 16:01:17.910 17359-17448/com.louis.naturalnet D/NetDevice: Getting score for device net2
+05-22 16:01:17.910 17359-17448/com.louis.naturalnet D/NetDevice: Traditional score: -1.1
+05-22 16:01:17.916 17359-17448/com.louis.naturalnet D/NetDevice: Point p: p.x=-0.00259785277842348, p.y=1.0531254109752652
+05-22 16:01:17.916 17359-17448/com.louis.naturalnet D/NetDevice: Point a: a.x=-0.0028187067419708422, a.y=1.0531562773774
+05-22 16:01:17.917 17359-17448/com.louis.naturalnet D/NetDevice: Point b: b.x=-0.002709902916401515, b.y=1.0531208652590647
+05-22 16:01:17.917 17359-17448/com.louis.naturalnet D/NetDevice: minX: -0.0028187067419708422
+05-22 16:01:17.917 17359-17448/com.louis.naturalnet D/NetDevice: maxX: -0.002709902916401515
+05-22 16:01:17.917 17359-17448/com.louis.naturalnet D/NetDevice: minY: 1.0531208652590647
+05-22 16:01:17.918 17359-17448/com.louis.naturalnet D/NetDevice: maxY: 1.0531562773774
+05-22 16:01:17.921 17359-17448/com.louis.naturalnet D/NetDevice: Quadrant: E
+05-22 16:01:17.925 17359-17448/com.louis.naturalnet D/NetDevice: Journey: journey.distance=1.1205013797803507E-4, journey.bearing=4.71238898038469
+05-22 16:01:17.925 17359-17448/com.louis.naturalnet D/NetDevice: Did not have bearing and speed information
+05-22 16:01:17.927 17359-17448/com.louis.naturalnet D/BTBroadcastReceiver: Device net2 has score: 998.899887949862

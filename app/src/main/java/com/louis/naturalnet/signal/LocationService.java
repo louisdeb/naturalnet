@@ -10,6 +10,7 @@ import android.util.Log;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.*;
+import com.louis.naturalnet.utils.Constants;
 
 /*
     https://developer.android.com/training/location/receive-location-updates.html
@@ -31,17 +32,13 @@ public class LocationService extends Service implements
 
     private static final String TAG = "LocationService";
 
-    // Time between location requests (millis)
-    private static final long REQUEST_INTERVAL = 30000;
-    private static final long FASTEST_REQUEST_INTERVAL = 2000;
-
     private GoogleApiClient googleApiClient;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "Started");
 
-//        if (googleApiClient == null || !googleApiClient.isConnected())
+        // if (googleApiClient == null || !googleApiClient.isConnected())
         startTrackingLocation();
 
         return START_STICKY;
@@ -63,8 +60,8 @@ public class LocationService extends Service implements
     @Override
     public void onConnected(Bundle bundle) {
         LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setInterval(REQUEST_INTERVAL);
-        locationRequest.setFastestInterval(FASTEST_REQUEST_INTERVAL);
+        locationRequest.setInterval(Constants.LOCATION_REQUEST_INTERVAL);
+        locationRequest.setFastestInterval(Constants.LOCATION_REQUEST_INTERVAL_FASTEST);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         Log.d(TAG, "Connected");
