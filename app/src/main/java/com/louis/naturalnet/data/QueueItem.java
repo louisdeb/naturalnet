@@ -6,7 +6,7 @@ public class QueueItem {
 
 	public String packetId;
 	public String path; // Keeps track of devices this packet has been passed through.
-	public ArrayList<Long> delay =  new ArrayList<>();
+	public ArrayList<Long> delay =  new ArrayList<>(); // TODO: Review the inclusion of 'delay'
 	public String data;
 	public int dataType;
 	public long timestamp;

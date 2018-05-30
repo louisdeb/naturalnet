@@ -3,19 +3,23 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent" android:orientation="vertical">
 
-    <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="20dp"
-            android:id="@+id/warning_fragment_container">
-    <!-- FrameLayout layout_height will be wrap_content when we have content -->
-    </FrameLayout>
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent" android:isScrollContainer="true">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+            <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="20dp"
+                    android:id="@+id/warning_fragment_container">
+            <!-- FrameLayout layout_height will be wrap_content when we have content -->
+            </FrameLayout>
 
-    <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="20dp"
-            android:id="@+id/network_fragment_container">
-        <!-- FrameLayout layout_height will be wrap_content when we have content -->
-    </FrameLayout>
+            <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="20dp"
+                    android:id="@+id/network_fragment_container">
+                <!-- FrameLayout layout_height will be wrap_content when we have content -->
+            </FrameLayout>
+        </LinearLayout>
+    </ScrollView>
 </LinearLayout>

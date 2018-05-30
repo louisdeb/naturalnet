@@ -45,9 +45,8 @@ public class BTScanningAlarm extends BroadcastReceiver {
 	}
 
 	private static void releaseWakeLock() {
-		if (wakeLock != null)
-			if (wakeLock.isHeld())
-				wakeLock.release();
+		if (wakeLock != null && wakeLock.isHeld())
+			wakeLock.release();
 	}
 
 	// Stop the scheduled alarm.

@@ -25,7 +25,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-//TODO: Sometimes we get a double connection where both phones become clients and servers.
+// TODO: Sometimes we get a double connection where both phones become clients and servers.
 // We could just check that we don't already have a connection to the device when establishing the connection
 // or receiving a handshake.
 
