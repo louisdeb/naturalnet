@@ -58,17 +58,23 @@ public class NaturalNetDevice {
         return device.getName();
     }
 
+    // Determines whether the device object (instance) is at the destination.
     public boolean isAtDestination(JSONObject destination) {
+        return locationInZone(location, destination);
+    }
+
+    // Utility function to determine whether the location is within the destination zone.
+    public static boolean locationInZone(Location location, JSONObject zone) {
         try {
             if (location == null)
                 return false;
 
             double lat = location.getLatitude();
             double lon = location.getLongitude();
-            double destLat1 = destination.getDouble(Warning.WARNING_LAT_START);
-            double destLat2 = destination.getDouble(Warning.WARNING_LAT_END);
-            double destLon1 = destination.getDouble(Warning.WARNING_LON_START);
-            double destLon2 = destination.getDouble(Warning.WARNING_LON_END);
+            double destLat1 = zone.getDouble(Warning.WARNING_LAT_START);
+            double destLat2 = zone.getDouble(Warning.WARNING_LAT_END);
+            double destLon1 = zone.getDouble(Warning.WARNING_LON_START);
+            double destLon2 = zone.getDouble(Warning.WARNING_LON_END);
 
             double minLat = Math.min(destLat1, destLat2);
             double maxLat = Math.max(destLat1, destLat2);

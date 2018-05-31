@@ -3,6 +3,7 @@ package com.louis.naturalnet.fragments;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.location.Location;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -16,6 +17,9 @@ import com.louis.naturalnet.R;
 import com.louis.naturalnet.data.QueueManager;
 import com.louis.naturalnet.data.Warning;
 import com.louis.naturalnet.data.WarningReceiver;
+import com.louis.naturalnet.device.NaturalNetDevice;
+import com.louis.naturalnet.signal.LocationReceiver;
+import com.louis.naturalnet.signal.SignalUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -25,6 +29,7 @@ public class WarningFragment extends Fragment {
 
     private boolean expanded = false;
     private Warning warning = null;
+    private Warning backgroundWarning = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -46,20 +51,61 @@ public class WarningFragment extends Fragment {
             @Override
             public void onReceive(Context context, Intent intent) {
                 try {
-                    JSONObject warningJSON = new JSONObject(intent.getStringExtra("warning"));
-                    warning = new Warning(warningJSON);
-                    title.callOnClick();
+                    handleWarningReceived(intent, title);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
         }, warningFilter);
 
+        IntentFilter locationFilter = new IntentFilter("com.louis.naturalnet.signal.LocationReceiver");
+        getActivity().registerReceiver(new LocationReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                try {
+                    handleLocationReceived(intent, title);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, locationFilter);
+
         return view;
+    }
+
+    private void handleWarningReceived(Intent intent, LinearLayout title) throws JSONException {
+        JSONObject warningJSON = new JSONObject(intent.getStringExtra("warning"));
+        if (intent.getBooleanExtra("inZone", false)) {
+            backgroundWarning = null;
+            warning = new Warning(warningJSON);
+            title.callOnClick();
+        } else {
+            backgroundWarning = new Warning(warningJSON);
+            warning = null;
+            title.callOnClick();
+        }
+    }
+
+    private void handleLocationReceived(Intent intent, LinearLayout title) throws JSONException {
+        Location location = SignalUtils.getLocation(intent);
+        if (backgroundWarning != null) {
+            if (NaturalNetDevice.locationInZone(location, backgroundWarning.getZone())) {
+                warning = backgroundWarning;
+                backgroundWarning = null;
+                title.callOnClick();
+            }
+        } else if (warning != null) {
+            if (NaturalNetDevice.locationInZone(location, warning.getZone())) {
+                backgroundWarning = warning;
+                warning = null;
+                title.callOnClick();
+            }
+        }
     }
 
     private void handleTitleClick(View view, View titleView, LinearLayout title) {
         boolean hasWarning = warning != null;
+        boolean hasBackgroundWarning = backgroundWarning != null;
 
         ImageView titleIconView = titleView.findViewById(R.id.warning_icon);
         TextView titleTextView = titleView.findViewById(R.id.warning_title);
@@ -72,7 +118,7 @@ public class WarningFragment extends Fragment {
         titleTextView.setText(titleTextRes);
         view.findViewById(R.id.warning_fragment_container).setBackgroundResource(backgroundRes);
 
-        if (!hasWarning) {
+        if (!hasWarning && !hasBackgroundWarning) {
             // For our test implementation, issue a warning.
             warning = QueueManager.getInstance().generateWarning();
             title.callOnClick();
@@ -80,6 +126,17 @@ public class WarningFragment extends Fragment {
             // If there's no warning, perform no action.
             return;
         }
+
+        // If there is a background warning, display 'Warning Nearby' and collapse the content view.
+        if (hasBackgroundWarning && !hasWarning) {
+            titleTextView.setText(R.string.warning_nearby);
+            titleIconView.setImageDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_warning));
+            view.findViewById(R.id.warning_fragment_container).setBackgroundResource(R.drawable.yellow_rounded_fragment);
+            view.findViewById(R.id.warning_content_layout).setVisibility(View.GONE);
+        }
+
+        if (!hasWarning)
+            return;
 
         expanded = !expanded;
 

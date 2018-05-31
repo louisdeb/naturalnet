@@ -99,4 +99,13 @@ public class Warning {
     public String toString() {
         return this.toJSON().toString();
     }
+
+    public JSONObject getZone() throws JSONException {
+        JSONObject obj = new JSONObject();
+        obj.put(WARNING_LAT_START, latStart);
+        obj.put(WARNING_LON_START, lonStart);
+        obj.put(WARNING_LAT_END, latEnd);
+        obj.put(WARNING_LON_END, lonEnd);
+        return obj;
+    }
 }

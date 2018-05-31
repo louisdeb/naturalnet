@@ -74,7 +74,13 @@ public class DeviceInformation {
         return QueueManager.getInstance().getQueueLength();
     }
 
-    /* Handshake parsing functions */
+    // Determines whether our device is in the destination zone.
+    public static boolean isAtDestination(JSONObject destination) {
+        return NaturalNetDevice.locationInZone(location, destination);
+    }
+
+    /*--- Handshake parsing functions ---*/
+
     static SignalQuality parseSignalQuality(JSONObject metadata) {
         try {
             int val = (int) metadata.get("signalQuality");

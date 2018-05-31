@@ -9,6 +9,7 @@ import android.util.Log;
 import com.louis.naturalnet.data.Packet;
 import com.louis.naturalnet.data.QueueManager;
 import com.louis.naturalnet.data.Warning;
+import com.louis.naturalnet.device.DeviceInformation;
 import com.louis.naturalnet.utils.Constants;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -81,6 +82,12 @@ class BTMessageHandler {
 
         // Announce warning received (check if we are in the zone, add to queue to transmit).
         Intent warningNotification = new Intent("com.louis.naturalnet.data.WarningReceiver");
+        try {
+            boolean deviceAtDestination = DeviceInformation.isAtDestination(warning.getZone());
+            warningNotification.putExtra("inZone", deviceAtDestination);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         warningNotification.putExtra("warning", warning.toString());
         context.sendBroadcast(warningNotification);
 
