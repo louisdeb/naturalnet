@@ -10,7 +10,7 @@ import android.bluetooth.BluetoothDevice;
  * @author fshi
  *
  */
-public class BTController {
+class BTController {
 
 	private BTCom btComm;
 
@@ -26,10 +26,6 @@ public class BTController {
 		btComm.startServer();
 	}
 
-	public void stopBTServer() {
-		btComm.stopServer();
-	}
-
 	void connectToBTServer(BluetoothDevice device, long timeout) {
 		btComm.connect(device, timeout);
 	}
@@ -38,11 +34,4 @@ public class BTController {
 		btComm.send(mac, data);
 	}
 
-	void sendToBTDevice(String mac, String data) {
-		btComm.send(mac, data);
-	}
-
-	void stopConnection(String mac) {
-		btComm.stopConnection(mac);
-	}	
 }

@@ -29,8 +29,6 @@ public class NaturalNetDevice {
 
     private static final String TAG = "NetDevice";
 
-    private static final int DEFAULT_LOCATION_SCORE = 1000;
-
     public BluetoothDevice device;
 
     private SignalQuality signalQuality;
@@ -88,8 +86,7 @@ public class NaturalNetDevice {
     }
 
     public double getScore(JSONObject destination) {
-        double score = (DeviceInformation.getQueueLength() - this.queueLength) +
-                Constants.ENERGY_PENALTY_COEFF * (batteryLevel - DeviceInformation.getBatteryLevel());
+        double score = Constants.ENERGY_PENALTY_COEFF * (batteryLevel - DeviceInformation.getBatteryLevel());
 
         Log.d(TAG, "Getting score for device " + device.getName());
         Log.d(TAG, "Traditional score: " + score);
@@ -97,22 +94,20 @@ public class NaturalNetDevice {
         try {
             score += getLocationScore(destination);
         } catch (JSONException e) {
-            score += DEFAULT_LOCATION_SCORE;
             e.printStackTrace();
         }
 
         return score;
     }
 
-    // The default score this function returns is 2 * EARTH_RADIUS.
-    // For a distance x between the device and the phone, score += EARTH_RADIUS - x
-    // For a time t to reach the zone, score += t
-    // If we don't have a estimated time, score += EARTH_RADIUS (i.e. a penalty)
     private double getLocationScore(JSONObject destination) throws JSONException {
         if (destination == null || location == null)
             return 0;
 
-        double score = DEFAULT_LOCATION_SCORE;
+        if (isAtDestination(destination))
+            return 200;
+
+        double score;
         double lat = Math.toRadians(location.getLatitude());
         double lon = Math.toRadians(location.getLongitude());
         double destLat1 = Math.toRadians(destination.getDouble(Warning.WARNING_LAT_START));
@@ -120,7 +115,8 @@ public class NaturalNetDevice {
         double destLon1 = Math.toRadians(destination.getDouble(Warning.WARNING_LON_START));
         double destLon2 = Math.toRadians(destination.getDouble(Warning.WARNING_LON_END));
 
-        /* Test locations - use these on three devices to test decision making. */
+        /* Test locations - use these on three devices to test decision making.
+           Used with Primrose Hill destination area. */
 
         /*
         if (device.getName().equals("net0")) {
@@ -189,42 +185,30 @@ public class NaturalNetDevice {
 
         Quadrant quadrant = getQuadrant(p, minX, maxX, minY, maxY);
 
-        // Log.d(TAG, "Quadrant: " + quadrant);
-
         Journey journey = getMinJourney(p, quadrant, minX, maxX, minY, maxY);
 
-        // Log.d(TAG, "Journey: journey.distance=" + journey.distance + ", journey.bearing=" + journey.bearing);
-
-        // TODO: Create some nicer scoring function based on distance and speed and whether the information exists.
-        score -= journey.distance;
+        double distanceScore = Math.min((1 / journey.distance), 100);
+        score = distanceScore;
 
         if (location.hasBearing() && location.hasSpeed()) {
             double bearing = Math.toRadians(location.getBearing());
             double speed = location.getSpeed();
 
-            // Log.d(TAG, "Bearing: " + bearing);
-            // Log.d(TAG, "Speed: " + speed);
-
             // Find out whether the device will collide with the area
             double maxBearing = getMaxBearing(p, quadrant, minX, maxX, minY, maxY);
             double minBearing = getMinBearing(p, quadrant, minX, maxX, minY, maxY);
 
-            // Log.d(TAG, "Max bearing: " + maxBearing);
-            // Log.d(TAG, "Min bearing: " + minBearing);
-
             // If the device will collide, calculate the time till collision.
-            // TODO: We want to have some great benefit in score if the device will collide, especially since they
-            // TODO: are compared to stationary devices and devices moving in the wrong direction altogether.
             if (bearing >= minBearing && bearing <= maxBearing) {
                 Log.d(TAG, "Will collide");
                 double distance = getDistanceToArrival(p, bearing, quadrant, journey.bearing, minX, maxX, minY, maxY);
                 Log.d(TAG, "Collides at distance: " + distance);
                 Log.d(TAG, "Time till collision: " + distance / speed);
-                score -= distance / speed;
+
+                double time = distance / speed;
+                score = Math.min(100 + 1 / time, 200);
             } else {
                 Log.d(TAG, "Will not collide");
-
-                // Add some penalty to the score if the device won't collide with the area
             }
 
         } else {

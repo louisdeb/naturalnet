@@ -38,7 +38,6 @@ public class LocationService extends Service implements
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "Started");
 
-        // if (googleApiClient == null || !googleApiClient.isConnected())
         startTrackingLocation();
 
         return START_STICKY;

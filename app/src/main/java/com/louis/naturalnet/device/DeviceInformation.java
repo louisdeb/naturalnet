@@ -70,7 +70,7 @@ public class DeviceInformation {
         return BatteryMonitor.getInstance(activity).getBatteryLevel();
     }
 
-    static int getQueueLength() {
+    private static int getQueueLength() {
         return QueueManager.getInstance().getQueueLength();
     }
 

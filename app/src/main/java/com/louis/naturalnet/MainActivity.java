@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
             getFragmentManager().beginTransaction().add(R.id.network_fragment_container, networkFragment).commit();
         }
 
-        // May choose to have some warning if we can't access the Google API
+        // May choose to issue some warning if we can't access the Google API
         // boolean googleApiAvailable = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS;
         // Log.d(TAG, "Google Api Availability: " + googleApiAvailable);
 
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         if (mBTManager == null) {
             mBTManager = new BTManager(getBaseContext());
             mBTManager.registerBroadcastReceivers();
-        } // else statement exists in OppNet
+        }
     }
 
     @Override

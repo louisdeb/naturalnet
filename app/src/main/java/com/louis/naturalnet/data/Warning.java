@@ -44,10 +44,16 @@ public class Warning {
         type = "Swarm of wasps";
         magnitude = "1000";
         impactTime = new Date(issueTime.getTime() + (5 * 60000));
+        /* Primrose Hill Destination */
         latStart = 51.538882;
         lonStart = -0.161500;
         latEnd = 51.537620;
         lonEnd = -0.155266;
+        /* Hyde Park Destination
+        latStart = 51.500507;
+        lonStart = -0.181558;
+        latEnd = 51.501819;
+        lonEnd = -0.179077; */
         recommendedActions = "Run!";
         message = "Bloody wasps";
     }

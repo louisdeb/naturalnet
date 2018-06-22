@@ -25,10 +25,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-// TODO: Sometimes we get a double connection where both phones become clients and servers.
-// We could just check that we don't already have a connection to the device when establishing the connection
-// or receiving a handshake.
-
 /**
  * a multi thread BT utility
  * @author fshi
@@ -249,14 +245,6 @@ class BTCom {
 			mClientSocket = tmp;
 		}
 
-		// Note: This is called when we connectToBTServer. This is our connection transferring data. The connection
-        // is created in the ClientThread constructor.
-        // If we are trying to send a message when we discover each device (to see if it is a NaturalNet relay),
-        // then we will stop discovering at every device found.
-        // So we would want to wait till the scan is completed, and then attempt a communication with each of those
-        // devices.
-        // Note 2: I think we do this in BTDeviceManager.
-
 		public void run() {
 			// Cancel discovery because it will slow down the connection.
 			if (mBluetoothAdapter.isDiscovering())
@@ -313,8 +301,6 @@ class BTCom {
 					closeException.printStackTrace();
 				}
 			}
-
-			// Do work to manage the connection (in a separate thread).
 		}
 
 		// Call this from the main activity to shutdown the connection.
@@ -390,10 +376,6 @@ class BTCom {
 
         // Add this connection to our list of connections.
         connections.add(newConn);
-
-        // We used to tell the BTMessageHandler here that we had a connection to a device. However if we're the client
-        // we haven't yet received a handshake, so we would want to wait for that.
-        // Better to let the BTDeviceManager decide or in some way trigger a send to the device.
 	}
 
 	/**
@@ -481,8 +463,7 @@ class BTCom {
 			}
 		}
 
-		// TODO: Badly named?
-		// Send a non-handshake message to the BTMessageHandler.
+		// Handle a non-handshake, received message.
 		private void handleMessage(Object buffer) {
             // Send the obtained bytes to the UI Activity.
             Message msg=Message.obtain();

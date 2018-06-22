@@ -129,7 +129,7 @@ public class BTDeviceManager extends BroadcastReceiver {
     }
 
     private void handshakeFailed(BluetoothDevice device) {
-        // This is for testing, in course our net devices have a failed connection we don't have to rebuild to
+        // This is for testing, in case our net devices have a failed connection we don't have to rebuild to
         // retry a connection.
         if (device.getName() != null && device.getName().toLowerCase().contains("net"))
             return;
@@ -181,18 +181,12 @@ public class BTDeviceManager extends BroadcastReceiver {
             if (path.contains(device.getAddress()))
                 continue;
 
-            // If the device is in the destination zone, send the packet to them regardless of their score.
-            if (device.isAtDestination(destination)) {
-                Log.d(TAG, "Sending to device at destination: " + device.getName());
-                manager.sendToBTDevice(device.device, packet);
-            } else {
-                double score = device.getScore(destination);
-                Log.d(TAG, "Device " + device.getName() + " has score: " + score);
+            double score = device.getScore(destination);
+            Log.d(TAG, "Device " + device.getName() + " has score: " + score);
 
-                if (bestDevice == null || score > maxScore) {
-                    maxScore = score;
-                    bestDevice = device;
-                }
+            if (bestDevice == null || score > maxScore) {
+                maxScore = score;
+                bestDevice = device;
             }
         }
 
@@ -215,7 +209,7 @@ public class BTDeviceManager extends BroadcastReceiver {
                 QueueItem item = queueManager.getFirstFromQueue();
                 JSONObject packet = new JSONObject();
 
-                JSONObject destination = null;
+                JSONObject destination;
 
                 // Create a packet out of the item.
                 if (item.dataType == Packet.TYPE_WARNING) {
@@ -233,13 +227,13 @@ public class BTDeviceManager extends BroadcastReceiver {
                         destination.put(Warning.WARNING_LON_START, warning.getDouble(Warning.WARNING_LON_START));
                         destination.put(Warning.WARNING_LAT_END, warning.getDouble(Warning.WARNING_LAT_END));
                         destination.put(Warning.WARNING_LON_END, warning.getDouble(Warning.WARNING_LON_END));
+
+                        // TODO: We may want to flood to every known device if we are in the destination zone.
+                        sendToBestDevice(packet, item.path, destination);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
                 }
-
-                // TODO: We may want to flood to every known device if we are in the destination zone.
-                sendToBestDevice(packet, item.path, destination);
             }
         }
 
