@@ -12,6 +12,7 @@ import com.louis.naturalnet.data.Packet;
 import com.louis.naturalnet.data.QueueItem;
 import com.louis.naturalnet.data.QueueManager;
 import com.louis.naturalnet.data.Warning;
+import com.louis.naturalnet.device.DeviceInformation;
 import com.louis.naturalnet.device.NaturalNetDevice;
 import com.louis.naturalnet.utils.Constants;
 import org.json.JSONException;
@@ -174,6 +175,8 @@ public class BTDeviceManager extends BroadcastReceiver {
 
     private void sendToBestDevice(JSONObject packet, String path, JSONObject destination) {
         Log.d(TAG, "Finding best device");
+        double ourScore = new NaturalNetDevice().getScore(destination, DeviceInformation.getLocation());
+
         double maxScore = 0;
         NaturalNetDevice bestDevice = null;
         for (NaturalNetDevice device : naturalNetDevices) {
@@ -190,7 +193,7 @@ public class BTDeviceManager extends BroadcastReceiver {
             }
         }
 
-        if (bestDevice != null) {
+        if (bestDevice != null && maxScore > ourScore) {
             Log.d(TAG, "Sending to device: " + bestDevice.getName());
             manager.sendToBTDevice(bestDevice.device, packet);
         } else {

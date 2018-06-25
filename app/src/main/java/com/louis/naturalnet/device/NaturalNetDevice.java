@@ -36,6 +36,10 @@ public class NaturalNetDevice {
     private int batteryLevel;
     private int queueLength;
 
+    public NaturalNetDevice() {
+
+    }
+
     public NaturalNetDevice(BluetoothDevice device, JSONObject metadata) {
         this.device = device;
         parseMetadata(metadata);
@@ -85,14 +89,11 @@ public class NaturalNetDevice {
         }
     }
 
-    public double getScore(JSONObject destination) {
-        double score = Constants.ENERGY_PENALTY_COEFF * (batteryLevel - DeviceInformation.getBatteryLevel());
-
-        Log.d(TAG, "Getting score for device " + device.getName());
-        Log.d(TAG, "Traditional score: " + score);
+    public double getScore(JSONObject destination, Location location) {
+        double score = 0;
 
         try {
-            score += getLocationScore(destination);
+            score = getLocationScore(destination, location);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -100,7 +101,22 @@ public class NaturalNetDevice {
         return score;
     }
 
-    private double getLocationScore(JSONObject destination) throws JSONException {
+    public double getScore(JSONObject destination) {
+        double score = Constants.ENERGY_PENALTY_COEFF * (batteryLevel - DeviceInformation.getBatteryLevel());
+
+        Log.d(TAG, "Getting score for device " + device.getName());
+        Log.d(TAG, "Traditional score: " + score);
+
+        try {
+            score += getLocationScore(destination, location);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return score;
+    }
+
+    private double getLocationScore(JSONObject destination, Location location) throws JSONException {
         if (destination == null || location == null)
             return 0;
 
